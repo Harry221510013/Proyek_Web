@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Website Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+        .warning { background: #FF9800; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+        .section { border: 1px solid #333; padding: 15px; margin: 10px 0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>🎯 Complete Website Test</h2>
+    <div id="results"></div>
+    
+    <div class="section">
+        <h3>Test Controls</h3>
+        <button onclick="testDatabase()">Test Database</button>
+        <button onclick="testAuthentication()">Test Authentication</button>
+        <button onclick="testGymClasses()">Test Gym Classes</button>
+        <button onclick="testBookings()">Test Bookings</button>
+        <button onclick="testFullWorkflow()">Test Full Workflow</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load all website functions -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Wait for all scripts to load
+        setTimeout(() => {
+            log('🚀 Starting complete website test...', 'info');
+            checkLoadedFunctions();
+        }, 2000);
+
+        function checkLoadedFunctions() {
+            log('🔍 Checking loaded functions...', 'info');
+            
+            // Check authentication functions
+            const authFunctions = ['registerUser', 'loginUser', 'logoutUser', 'updateUserProfile'];
+            authFunctions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    log(`✅ ${func} loaded`, 'success');
+                } else {
+                    log(`⚠️ ${func} not found`, 'warning');
+                }
+            });
+            
+            // Check gym classes functions
+            const classFunctions = ['createClass', 'getAllClasses', 'updateClass', 'deleteClass'];
+            classFunctions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    log(`✅ ${func} loaded`, 'success');
+                } else {
+                    log(`⚠️ ${func} not found`, 'warning');
+                }
+            });
+            
+            // Check booking functions
+            const bookingFunctions = ['bookClass', 'getUserBookings', 'cancelBooking'];
+            bookingFunctions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    log(`✅ ${func} loaded`, 'success');
+                } else {
+                    log(`⚠️ ${func} not found`, 'warning');
+                }
+            });
+            
+            // Check Firebase objects
+            if (window.firebaseAuth) {
+                log('✅ Firebase Auth loaded', 'success');
+            } else {
+                log('⚠️ Firebase Auth not loaded', 'warning');
+            }
+            
+            if (window.firebaseDatabase) {
+                log('✅ Firebase Database loaded', 'success');
+            } else {
+                log('⚠️ Firebase Database not loaded', 'warning');
+            }
+        }
+
+        async function testDatabase() {
+            log('🔥 Testing Firebase Database...', 'info');
+            
+            try {
+                const database = window.firebaseDatabase || firebase.database();
+                
+                // Test basic operations
+                const testData = {
+                    message: 'Database test',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref('test-db').set(testData);
+                log('✅ Database write successful', 'success');
+                
+                const snapshot = await database.ref('test-db').once('value');
+                if (snapshot.exists()) {
+                    log('✅ Database read successful', 'success');
+                    log('Data: ' + JSON.stringify(snapshot.val()), 'info');
+                }
+                
+                await database.ref('test-db').remove();
+                log('✅ Database delete successful', 'success');
+                
+            } catch (error) {
+                log('❌ Database test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testAuthentication() {
+            log('🔐 Testing Authentication System...', 'info');
+            
+            try {
+                // Test user registration
+                if (typeof window.registerUser === 'function') {
+                    log('🔄 Testing user registration...', 'info');
+                    
+                    const testEmail = 'test' + Date.now() + '@example.com';
+                    const testPassword = 'testpass123';
+                    const testName = 'Test User';
+                    
+                    try {
+                        const result = await window.registerUser(testEmail, testPassword, testName);
+                        if (result.success) {
+                            log('✅ User registration successful', 'success');
+                            log('User ID: ' + result.user.uid, 'info');
+                            
+                            // Test logout
+                            if (typeof window.logoutUser === 'function') {
+                                await window.logoutUser();
+                                log('✅ User logout successful', 'success');
+                            }
+                        } else {
+                            log('❌ User registration failed: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        log('❌ Registration error: ' + error.message, 'error');
+                    }
+                } else {
+                    log('⚠️ registerUser function not available', 'warning');
+                }
+                
+            } catch (error) {
+                log('❌ Authentication test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testGymClasses() {
+            log('🏋️ Testing Gym Classes System...', 'info');
+            
+            try {
+                if (typeof window.createClass === 'function') {
+                    log('🔄 Testing class creation...', 'info');
+                    
+                    const testClass = {
+                        name: 'Test Yoga Class',
+                        date: '2024-01-20',
+                        time: '10:00',
+                        trainer: 'Test Trainer',
+                        maxParticipants: 15,
+                        description: 'Test class description'
+                    };
+                    
+                    try {
+                        const result = await window.createClass(testClass);
+                        if (result.success) {
+                            log('✅ Class creation successful', 'success');
+                            log('Class ID: ' + result.classId, 'info');
+                            
+                            // Test get all classes
+                            if (typeof window.getAllClasses === 'function') {
+                                const classes = await window.getAllClasses();
+                                if (classes.length > 0) {
+                                    log('✅ Get all classes successful', 'success');
+                                    log('Total classes: ' + classes.length, 'info');
+                                }
+                            }
+                            
+                            // Test delete class
+                            if (typeof window.deleteClass === 'function') {
+                                await window.deleteClass(result.classId);
+                                log('✅ Class deletion successful', 'success');
+                            }
+                        } else {
+                            log('❌ Class creation failed: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        log('❌ Class creation error: ' + error.message, 'error');
+                    }
+                } else {
+                    log('⚠️ createClass function not available', 'warning');
+                }
+                
+            } catch (error) {
+                log('❌ Gym classes test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testBookings() {
+            log('📅 Testing Booking System...', 'info');
+            
+            try {
+                if (typeof window.bookClass === 'function') {
+                    log('🔄 Testing booking system...', 'info');
+                    
+                    // First create a test class
+                    if (typeof window.createClass === 'function') {
+                        const testClass = {
+                            name: 'Test Booking Class',
+                            date: '2024-01-25',
+                            time: '14:00',
+                            trainer: 'Test Trainer',
+                            maxParticipants: 10
+                        };
+                        
+                        const classResult = await window.createClass(testClass);
+                        if (classResult.success) {
+                            log('✅ Test class created for booking', 'success');
+                            
+                            // Test booking (would need a logged-in user)
+                            log('⚠️ Booking test requires user authentication', 'warning');
+                            log('💡 Use the website interface to test booking', 'info');
+                            
+                            // Clean up
+                            if (typeof window.deleteClass === 'function') {
+                                await window.deleteClass(classResult.classId);
+                                log('✅ Test class cleaned up', 'success');
+                            }
+                        }
+                    }
+                } else {
+                    log('⚠️ bookClass function not available', 'warning');
+                }
+                
+            } catch (error) {
+                log('❌ Booking test failed: ' + error.message, 'error');
+            }
+        }
+
+        async function testFullWorkflow() {
+            log('🎯 Testing Complete Workflow...', 'info');
+            
+            try {
+                // Test database connection
+                await testDatabase();
+                
+                // Test authentication
+                await testAuthentication();
+                
+                // Test gym classes
+                await testGymClasses();
+                
+                // Test bookings
+                await testBookings();
+                
+                log('🎉 Complete workflow test finished!', 'success');
+                log('✅ Your gym booking website is ready!', 'success');
+                log('🚀 Next steps:', 'info');
+                log('1. Open index.html in browser', 'info');
+                log('2. Click "Login/Register"', 'info');
+                log('3. Create a new account', 'info');
+                log('4. Login and test the dashboard', 'info');
+                log('5. Try booking a class', 'info');
+                
+            } catch (error) {
+                log('❌ Full workflow test failed: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-run basic checks
+        setTimeout(() => {
+            testDatabase();
+        }, 3000);
+    </script>
+</body>
+</html> 

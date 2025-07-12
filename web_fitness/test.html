@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #4CAF50; }
+        .error { background-color: #F44336; }
+        .info { background-color: #2196F3; }
+        button {
+            background-color: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Connection Test</h1>
+    
+    <div id="status"></div>
+    
+    <h3>Test Registration</h3>
+    <input type="email" id="testEmail" placeholder="Email" value="test@example.com">
+    <input type="password" id="testPassword" placeholder="Password" value="123456">
+    <input type="text" id="testName" placeholder="Full Name" value="Test User">
+    <br>
+    <button onclick="testRegister()">Test Register</button>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testLogout()">Test Logout</button>
+    
+    <h3>Test Database</h3>
+    <button onclick="testDatabase()">Test Database Write</button>
+    <button onclick="testDatabaseRead()">Test Database Read</button>
+    
+    <div id="results"></div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMD2jUich1QWj14h-nkaIR_F7d1QBOqCc",
+            authDomain: "booking-gym-mo.firebaseapp.com",
+            databaseURL: "https://booking-gym-mo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "booking-gym-mo",
+            storageBucket: "booking-gym-mo.firebasestorage.app",
+            messagingSenderId: "977848860115",
+            appId: "1:977848860115:web:b6ee470443876ff904326",
+            measurementId: "G-G8JJ7KPVCF"
+        };
+
+        let app, auth, database;
+
+        // Initialize Firebase
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+            
+            showStatus('Firebase initialized successfully!', 'success');
+            console.log('Firebase initialized:', app);
+        } catch (error) {
+            showStatus('Firebase initialization failed: ' + error.message, 'error');
+            console.error('Firebase error:', error);
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showResult(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status info">${new Date().toLocaleTimeString()}: ${message}</div>`;
+        }
+
+        async function testRegister() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            const name = document.getElementById('testName').value;
+
+            try {
+                showStatus('Testing registration...', 'info');
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Update profile
+                await user.updateProfile({ displayName: name });
+                
+                // Save to database
+                await database.ref('users/' + user.uid).set({
+                    uid: user.uid,
+                    email: email,
+                    fullName: name,
+                    role: 'user',
+                    createdAt: new Date().toISOString()
+                });
+                
+                showStatus('Registration successful!', 'success');
+                showResult(`User registered: ${user.email}`);
+            } catch (error) {
+                showStatus('Registration failed: ' + error.message, 'error');
+                showResult(`Registration error: ${error.message}`);
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            try {
+                showStatus('Testing login...', 'info');
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                showStatus('Login successful!', 'success');
+                showResult(`User logged in: ${user.email}`);
+            } catch (error) {
+                showStatus('Login failed: ' + error.message, 'error');
+                showResult(`Login error: ${error.message}`);
+            }
+        }
+
+        async function testLogout() {
+            try {
+                showStatus('Testing logout...', 'info');
+                await auth.signOut();
+                showStatus('Logout successful!', 'success');
+                showResult('User logged out');
+            } catch (error) {
+                showStatus('Logout failed: ' + error.message, 'error');
+                showResult(`Logout error: ${error.message}`);
+            }
+        }
+
+        async function testDatabase() {
+            try {
+                showStatus('Testing database write...', 'info');
+                const testRef = database.ref('test/' + Date.now());
+                await testRef.set({
+                    message: 'Hello Firebase!',
+                    timestamp: new Date().toISOString(),
+                    random: Math.random()
+                });
+                showStatus('Database write successful!', 'success');
+                showResult('Test data written to database');
+            } catch (error) {
+                showStatus('Database write failed: ' + error.message, 'error');
+                showResult(`Database error: ${error.message}`);
+            }
+        }
+
+        async function testDatabaseRead() {
+            try {
+                showStatus('Testing database read...', 'info');
+                const snapshot = await database.ref('test').limitToLast(5).once('value');
+                const data = snapshot.val();
+                showStatus('Database read successful!', 'success');
+                showResult(`Read ${Object.keys(data || {}).length} test records`);
+                console.log('Test data:', data);
+            } catch (error) {
+                showStatus('Database read failed: ' + error.message, 'error');
+                showResult(`Database read error: ${error.message}`);
+            }
+        }
+
+        // Monitor auth state
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                showResult(`Auth state: User logged in (${user.email})`);
+            } else {
+                showResult('Auth state: User logged out');
+            }
+        });
+    </script>
+</body>
+</html> 

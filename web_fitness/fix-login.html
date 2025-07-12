@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fix Login Issues</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .section { border: 1px solid #333; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+        .warning { background: #FF9800; }
+        input { padding: 10px; margin: 5px; border: none; border-radius: 5px; width: 200px; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>🔧 Fix Login Issues</h2>
+    <div id="results"></div>
+    
+    <div class="section">
+        <h3>🔐 Test Registration</h3>
+        <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="regPassword" placeholder="Password" value="password123">
+        <input type="text" id="regName" placeholder="Full Name" value="Test User">
+        <button onclick="testRegistration()">Test Registration</button>
+    </div>
+    
+    <div class="section">
+        <h3>🔑 Test Login</h3>
+        <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+        <input type="password" id="loginPassword" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Test Login</button>
+    </div>
+    
+    <div class="section">
+        <h3>👥 User Management</h3>
+        <button onclick="listUsers()">List All Users</button>
+        <button onclick="getCurrentUser()">Get Current User</button>
+        <button onclick="logoutUser()">Logout</button>
+    </div>
+    
+    <div class="section">
+        <h3>🔍 Debug Tools</h3>
+        <button onclick="checkFirebaseAuth()">Check Firebase Auth</button>
+        <button onclick="checkAuthState()">Check Auth State</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config and Auth -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Wait for Firebase to load
+        setTimeout(() => {
+            checkFirebaseAuth();
+        }, 2000);
+
+        function checkFirebaseAuth() {
+            log('🔍 Checking Firebase Authentication setup...', 'info');
+            
+            if (typeof firebase !== 'undefined') {
+                log('✅ Firebase SDK loaded', 'success');
+            } else {
+                log('❌ Firebase SDK not loaded', 'error');
+                return;
+            }
+            
+            if (window.firebaseAuth) {
+                log('✅ Firebase Auth initialized', 'success');
+            } else {
+                log('❌ Firebase Auth not initialized', 'error');
+                return;
+            }
+            
+            if (window.firebaseDatabase) {
+                log('✅ Firebase Database initialized', 'success');
+            } else {
+                log('❌ Firebase Database not initialized', 'error');
+                return;
+            }
+            
+            // Check if functions are available
+            if (typeof window.registerUser === 'function') {
+                log('✅ registerUser function available', 'success');
+            } else {
+                log('❌ registerUser function not available', 'error');
+            }
+            
+            if (typeof window.loginUser === 'function') {
+                log('✅ loginUser function available', 'success');
+            } else {
+                log('❌ loginUser function not available', 'error');
+            }
+        }
+
+        async function testRegistration() {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const name = document.getElementById('regName').value;
+            
+            log('🔄 Testing user registration...', 'info');
+            log(`Email: ${email}, Password: ${password}, Name: ${name}`, 'info');
+            
+            try {
+                const result = await window.registerUser(email, password, name);
+                
+                if (result.success) {
+                    log('✅ Registration successful!', 'success');
+                    log('User ID: ' + result.user.uid, 'info');
+                    log('User Email: ' + result.user.email, 'info');
+                } else {
+                    log('❌ Registration failed: ' + result.error, 'error');
+                    
+                    // If user already exists, that's OK
+                    if (result.error.includes('email-already-in-use')) {
+                        log('ℹ️ User already exists - this is OK for testing', 'info');
+                    }
+                }
+            } catch (error) {
+                log('❌ Registration error: ' + error.message, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            log('🔄 Testing user login...', 'info');
+            log(`Email: ${email}, Password: ${password}`, 'info');
+            
+            try {
+                const result = await window.loginUser(email, password);
+                
+                if (result.success) {
+                    log('✅ Login successful!', 'success');
+                    log('User ID: ' + result.user.uid, 'info');
+                    log('User Email: ' + result.user.email, 'info');
+                    if (result.userData) {
+                        log('User Data: ' + JSON.stringify(result.userData), 'info');
+                    }
+                } else {
+                    log('❌ Login failed: ' + result.error, 'error');
+                    
+                    // Provide specific error messages
+                    if (result.error.includes('invalid-login-credentials')) {
+                        log('💡 Possible solutions:', 'warning');
+                        log('1. Check if email and password are correct', 'warning');
+                        log('2. Make sure user is registered first', 'warning');
+                        log('3. Try registering a new user', 'warning');
+                    }
+                }
+            } catch (error) {
+                log('❌ Login error: ' + error.message, 'error');
+            }
+        }
+
+        async function listUsers() {
+            log('👥 Listing all users...', 'info');
+            
+            try {
+                const database = window.firebaseDatabase;
+                const snapshot = await database.ref('users').once('value');
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const userCount = Object.keys(users).length;
+                    log(`✅ Found ${userCount} users in database`, 'success');
+                    
+                    Object.keys(users).forEach(uid => {
+                        const user = users[uid];
+                        log(`User: ${user.email || user.fullName || uid}`, 'info');
+                    });
+                } else {
+                    log('⚠️ No users found in database', 'warning');
+                    log('💡 Try registering a user first', 'info');
+                }
+            } catch (error) {
+                log('❌ Error listing users: ' + error.message, 'error');
+            }
+        }
+
+        async function getCurrentUser() {
+            log('👤 Getting current user...', 'info');
+            
+            const auth = window.firebaseAuth;
+            const user = auth.currentUser;
+            
+            if (user) {
+                log('✅ User is logged in', 'success');
+                log('User ID: ' + user.uid, 'info');
+                log('User Email: ' + user.email, 'info');
+                log('User Display Name: ' + user.displayName, 'info');
+            } else {
+                log('⚠️ No user is currently logged in', 'warning');
+            }
+        }
+
+        function checkAuthState() {
+            log('🔍 Checking authentication state...', 'info');
+            
+            const auth = window.firebaseAuth;
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    log('✅ User is authenticated', 'success');
+                    log('User: ' + user.email, 'info');
+                } else {
+                    log('⚠️ User is not authenticated', 'warning');
+                }
+            });
+        }
+
+        // Auto-generate unique test email
+        function generateTestEmail() {
+            const timestamp = Date.now();
+            return `test${timestamp}@example.com`;
+        }
+
+        // Set unique email for testing
+        setTimeout(() => {
+            document.getElementById('regEmail').value = generateTestEmail();
+            document.getElementById('loginEmail').value = document.getElementById('regEmail').value;
+        }, 1000);
+    </script>
+</body>
+</html> 

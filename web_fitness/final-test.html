@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Final Firebase Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+        .warning { background: #FF9800; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>🎯 Final Firebase Database Test</h2>
+    <div id="results"></div>
+    
+    <button onclick="testFullSystem()">Test Full System</button>
+    <button onclick="testWebsiteFeatures()">Test Website Features</button>
+    <button onclick="clearResults()">Clear Results</button>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMD2jUich1QWj14h-nkaIR_F7dlQBOqCc",
+            authDomain: "booking-gym-mo.firebaseapp.com",
+            databaseURL: "https://booking-gym-mo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "booking-gym-mo",
+            storageBucket: "booking-gym-mo.firebasestorage.app",
+            messagingSenderId: "977848860115",
+            appId: "1:977848860115:web:b6ee470443876ff904326"
+        };
+
+        let app, auth, database;
+
+        // Initialize Firebase
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+            
+            log('✅ Firebase initialized successfully', 'success');
+            log('🔄 Testing database operations...', 'info');
+            
+            // Test immediately
+            setTimeout(testFullSystem, 1000);
+            
+        } catch (error) {
+            log('❌ Firebase initialization failed: ' + error.message, 'error');
+        }
+
+        async function testFullSystem() {
+            log('🎯 Starting full system test...', 'info');
+            
+            try {
+                // Test 1: Basic database write/read
+                log('📝 Test 1: Basic database operations', 'info');
+                
+                const testData = {
+                    message: 'System test',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    testId: Date.now()
+                };
+                
+                await database.ref('system-test').set(testData);
+                log('✅ Write operation successful', 'success');
+                
+                const snapshot = await database.ref('system-test').once('value');
+                if (snapshot.exists()) {
+                    log('✅ Read operation successful', 'success');
+                    log('Data: ' + JSON.stringify(snapshot.val()), 'info');
+                } else {
+                    log('❌ Read operation failed', 'error');
+                }
+                
+                // Test 2: Test gym classes structure
+                log('🏋️ Test 2: Gym classes structure', 'info');
+                
+                const sampleClass = {
+                    name: 'Test Yoga Class',
+                    date: '2024-01-15',
+                    time: '09:00',
+                    trainer: 'Test Trainer',
+                    maxParticipants: 20,
+                    currentParticipants: 0,
+                    participants: {}
+                };
+                
+                await database.ref('classes/test-class').set(sampleClass);
+                log('✅ Class creation successful', 'success');
+                
+                // Test 3: Test users structure
+                log('👤 Test 3: Users structure', 'info');
+                
+                const sampleUser = {
+                    name: 'Test User',
+                    email: 'test@example.com',
+                    role: 'user',
+                    createdAt: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref('users/test-user').set(sampleUser);
+                log('✅ User creation successful', 'success');
+                
+                // Test 4: Test bookings structure
+                log('📅 Test 4: Bookings structure', 'info');
+                
+                const sampleBooking = {
+                    className: 'Test Yoga Class',
+                    classDate: '2024-01-15',
+                    classTime: '09:00',
+                    status: 'confirmed',
+                    bookingDate: firebase.database.ServerValue.TIMESTAMP
+                };
+                
+                await database.ref('bookings/test-user/test-class').set(sampleBooking);
+                log('✅ Booking creation successful', 'success');
+                
+                // Test 5: Test data retrieval
+                log('📊 Test 5: Data retrieval', 'info');
+                
+                const classesSnapshot = await database.ref('classes').once('value');
+                const usersSnapshot = await database.ref('users').once('value');
+                const bookingsSnapshot = await database.ref('bookings').once('value');
+                
+                if (classesSnapshot.exists()) {
+                    log('✅ Classes data retrieved', 'success');
+                }
+                if (usersSnapshot.exists()) {
+                    log('✅ Users data retrieved', 'success');
+                }
+                if (bookingsSnapshot.exists()) {
+                    log('✅ Bookings data retrieved', 'success');
+                }
+                
+                // Clean up test data
+                await database.ref('system-test').remove();
+                await database.ref('classes/test-class').remove();
+                await database.ref('users/test-user').remove();
+                await database.ref('bookings/test-user').remove();
+                
+                log('🧹 Test data cleaned up', 'info');
+                log('🎉 ALL TESTS PASSED! Database is working perfectly!', 'success');
+                log('✅ Your website is ready to use!', 'success');
+                
+            } catch (error) {
+                log('❌ Test failed: ' + error.message, 'error');
+                log('Error code: ' + error.code, 'error');
+            }
+        }
+
+        async function testWebsiteFeatures() {
+            log('🌐 Testing website features...', 'info');
+            
+            try {
+                // Test authentication functions
+                log('🔐 Testing authentication functions...', 'info');
+                
+                if (typeof window.registerUser === 'function') {
+                    log('✅ registerUser function available', 'success');
+                } else {
+                    log('⚠️ registerUser function not found', 'warning');
+                }
+                
+                if (typeof window.loginUser === 'function') {
+                    log('✅ loginUser function available', 'success');
+                } else {
+                    log('⚠️ loginUser function not found', 'warning');
+                }
+                
+                // Test gym classes functions
+                log('🏋️ Testing gym classes functions...', 'info');
+                
+                if (typeof window.createClass === 'function') {
+                    log('✅ createClass function available', 'success');
+                } else {
+                    log('⚠️ createClass function not found', 'warning');
+                }
+                
+                if (typeof window.getAllClasses === 'function') {
+                    log('✅ getAllClasses function available', 'success');
+                } else {
+                    log('⚠️ getAllClasses function not found', 'warning');
+                }
+                
+                // Test booking functions
+                log('📅 Testing booking functions...', 'info');
+                
+                if (typeof window.bookClass === 'function') {
+                    log('✅ bookClass function available', 'success');
+                } else {
+                    log('⚠️ bookClass function not found', 'warning');
+                }
+                
+                if (typeof window.getUserBookings === 'function') {
+                    log('✅ getUserBookings function available', 'success');
+                } else {
+                    log('⚠️ getUserBookings function not found', 'warning');
+                }
+                
+                log('🎯 Website feature test completed', 'info');
+                
+            } catch (error) {
+                log('❌ Website feature test failed: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html> 

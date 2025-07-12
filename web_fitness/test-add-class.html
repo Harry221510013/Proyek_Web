@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Add Class</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+        .warning { background: #FF9800; }
+        input, select, textarea { padding: 10px; margin: 5px 0; border: none; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 12px 20px; margin: 10px 0; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #f8a5c2; }
+        h2 { color: #f8a5c2; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🧪 Test Tambah Kelas</h2>
+        <div id="results"></div>
+        
+        <div class="form-group">
+            <button onclick="testFirebaseConnection()">Test Firebase Connection</button>
+        </div>
+        
+        <div class="form-group">
+            <button onclick="testFunctions()">Test Functions Available</button>
+        </div>
+        
+        <form id="testClassForm">
+            <div class="form-group">
+                <label for="testClassName">Nama Kelas</label>
+                <input type="text" id="testClassName" value="Test Yoga Class" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testCategory">Kategori</label>
+                <select id="testCategory" required>
+                    <option value="yoga">Yoga</option>
+                    <option value="cardio">Cardio</option>
+                    <option value="strength">Strength</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="testDate">Tanggal</label>
+                <input type="date" id="testDate" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testTime">Waktu</label>
+                <input type="time" id="testTime" value="10:00" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testTrainer">Trainer</label>
+                <input type="text" id="testTrainer" value="Test Trainer" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testMax">Max Peserta</label>
+                <input type="number" id="testMax" value="20" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testPrice">Harga</label>
+                <input type="number" id="testPrice" value="50000" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="testDescription">Deskripsi</label>
+                <textarea id="testDescription" rows="3">Test deskripsi kelas yoga</textarea>
+            </div>
+            
+            <button type="submit">Test Tambah Kelas</button>
+        </form>
+        
+        <div class="form-group">
+            <button onclick="testGetAllClasses()">Test Get All Classes</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Set default date to tomorrow
+        setTimeout(() => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('testDate').value = tomorrow.toISOString().split('T')[0];
+        }, 1000);
+
+        function testFirebaseConnection() {
+            log('🔍 Testing Firebase connection...', 'info');
+            
+            if (typeof firebase !== 'undefined') {
+                log('✅ Firebase SDK loaded', 'success');
+            } else {
+                log('❌ Firebase SDK not loaded', 'error');
+                return;
+            }
+            
+            if (window.firebaseDatabase) {
+                log('✅ Firebase Database connected', 'success');
+            } else {
+                log('❌ Firebase Database not connected', 'error');
+                return;
+            }
+            
+            if (window.firebaseAuth) {
+                log('✅ Firebase Auth connected', 'success');
+            } else {
+                log('❌ Firebase Auth not connected', 'error');
+            }
+        }
+
+        function testFunctions() {
+            log('🔍 Testing available functions...', 'info');
+            
+            const functions = ['createClass', 'createGymClass', 'getAllClasses', 'deleteClass'];
+            
+            functions.forEach(funcName => {
+                if (typeof window[funcName] === 'function') {
+                    log(`✅ ${funcName} available`, 'success');
+                } else {
+                    log(`❌ ${funcName} not available`, 'error');
+                }
+            });
+        }
+
+        async function testGetAllClasses() {
+            log('📋 Testing getAllClasses...', 'info');
+            
+            try {
+                const classes = await getAllClasses();
+                log('✅ getAllClasses executed', 'success');
+                log(`Found ${classes.length} classes`, 'info');
+                
+                if (classes.length > 0) {
+                    log('Sample class: ' + JSON.stringify(classes[0]), 'info');
+                }
+                
+            } catch (error) {
+                log('❌ getAllClasses error: ' + error.message, 'error');
+            }
+        }
+
+        document.getElementById('testClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            log('🔄 Testing add class...', 'info');
+            
+            const classData = {
+                name: document.getElementById('testClassName').value,
+                category: document.getElementById('testCategory').value,
+                date: document.getElementById('testDate').value,
+                time: document.getElementById('testTime').value,
+                trainer: document.getElementById('testTrainer').value,
+                maxParticipants: parseInt(document.getElementById('testMax').value),
+                price: parseInt(document.getElementById('testPrice').value),
+                description: document.getElementById('testDescription').value,
+                duration: 60
+            };
+            
+            log('Class data: ' + JSON.stringify(classData), 'info');
+            
+            try {
+                // Test with createClass function
+                if (typeof window.createClass === 'function') {
+                    log('Using createClass function...', 'info');
+                    const result = await createClass(classData);
+                    
+                    if (result.success) {
+                        log('✅ Class created successfully!', 'success');
+                        log('Class ID: ' + result.classId, 'info');
+                        
+                        // Test get all classes after adding
+                        setTimeout(() => {
+                            testGetAllClasses();
+                        }, 1000);
+                        
+                    } else {
+                        log('❌ Create class failed: ' + result.error, 'error');
+                    }
+                } else {
+                    log('❌ createClass function not available', 'error');
+                }
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message, 'error');
+                log('Stack: ' + error.stack, 'error');
+            }
+        });
+
+        // Auto-test when page loads
+        setTimeout(() => {
+            testFirebaseConnection();
+            testFunctions();
+        }, 2000);
+    </script>
+</body>
+</html> 

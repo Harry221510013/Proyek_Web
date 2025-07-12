@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Admin User</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .section { border: 1px solid #333; padding: 20px; margin: 10px 0; border-radius: 10px; background: rgba(255,255,255,0.1); }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+        .warning { background: #FF9800; }
+        input { padding: 10px; margin: 5px 0; border: none; border-radius: 5px; width: 100%; box-sizing: border-box; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 12px 20px; margin: 10px 0; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:hover { background: #f093b0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #f8a5c2; }
+        h2 { color: #f8a5c2; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔐 Buat Admin User</h2>
+        <div id="results"></div>
+        
+        <div class="section">
+            <h3>Registrasi Admin</h3>
+            <form id="adminForm">
+                <div class="form-group">
+                    <label for="adminEmail">Email Admin</label>
+                    <input type="email" id="adminEmail" required placeholder="admin@fitlife.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminPassword">Password</label>
+                    <input type="password" id="adminPassword" required placeholder="Minimal 6 karakter">
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminName">Nama Lengkap</label>
+                    <input type="text" id="adminName" required placeholder="Nama Admin">
+                </div>
+                
+                <button type="submit">Buat Admin User</button>
+            </form>
+        </div>
+        
+        <div class="section">
+            <h3>Langkah-langkah:</h3>
+            <ol>
+                <li>Isi form di atas untuk membuat user admin</li>
+                <li>Setelah berhasil, login dengan akun admin</li>
+                <li>Akses panel admin di <strong>admin-simple.html</strong></li>
+                <li>Mulai menambahkan kelas gym</li>
+            </ol>
+        </div>
+        
+        <div class="section">
+            <h3>Akses Panel Admin</h3>
+            <p>Setelah membuat admin user, Anda dapat mengakses:</p>
+            <ul>
+                <li><strong>Panel Admin:</strong> <a href="admin-simple.html" style="color: #f8a5c2;">admin-simple.html</a></li>
+                <li><strong>Dashboard User:</strong> <a href="dashboard.html" style="color: #f8a5c2;">dashboard.html</a></li>
+                <li><strong>Website Utama:</strong> <a href="index.html" style="color: #f8a5c2;">index.html</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Wait for Firebase to initialize
+        setTimeout(() => {
+            log('Firebase siap. Silakan buat admin user.', 'info');
+        }, 2000);
+
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const name = document.getElementById('adminName').value;
+            
+            log('🔄 Membuat admin user...', 'info');
+            
+            try {
+                // Register user
+                const result = await registerUser(email, password, name);
+                
+                if (result.success) {
+                    log('✅ User berhasil dibuat!', 'success');
+                    
+                    // Set user as admin
+                    const database = window.firebaseDatabase;
+                    await database.ref('users/' + result.user.uid).update({
+                        role: 'admin',
+                        isAdmin: true,
+                        adminCreatedAt: new Date().toISOString()
+                    });
+                    
+                    log('✅ User berhasil diset sebagai admin!', 'success');
+                    log('🎉 Admin user berhasil dibuat!', 'success');
+                    log('📧 Email: ' + email, 'info');
+                    log('👤 Nama: ' + name, 'info');
+                    log('🔑 Role: Admin', 'info');
+                    
+                    log('🚀 Langkah selanjutnya:', 'info');
+                    log('1. Login dengan akun admin yang baru dibuat', 'info');
+                    log('2. Akses admin-simple.html', 'info');
+                    log('3. Mulai menambahkan kelas gym', 'info');
+                    
+                    // Clear form
+                    document.getElementById('adminForm').reset();
+                    
+                } else {
+                    log('❌ Error: ' + result.error, 'error');
+                    
+                    if (result.error.includes('email-already-in-use')) {
+                        log('💡 User sudah ada. Coba set sebagai admin...', 'info');
+                        
+                        // Try to login and set as admin
+                        const loginResult = await loginUser(email, password);
+                        if (loginResult.success) {
+                            const database = window.firebaseDatabase;
+                            await database.ref('users/' + loginResult.user.uid).update({
+                                role: 'admin',
+                                isAdmin: true,
+                                adminUpdatedAt: new Date().toISOString()
+                            });
+                            log('✅ User berhasil diupdate sebagai admin!', 'success');
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                log('❌ Error: ' + error.message, 'error');
+            }
+        });
+
+        // Auto-fill dengan contoh data
+        setTimeout(() => {
+            document.getElementById('adminEmail').value = 'admin@fitlife.com';
+            document.getElementById('adminPassword').value = 'admin123';
+            document.getElementById('adminName').value = 'FitLife Admin';
+        }, 3000);
+    </script>
+</body>
+</html> 

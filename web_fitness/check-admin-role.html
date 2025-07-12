@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Admin Role</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #121212;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .btn {
+            background: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #f093b0;
+        }
+        .result {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .error {
+            color: #F44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Check Admin Role</h1>
+        
+        <div class="section">
+            <h3>Check Current User Role</h3>
+            <button class="btn" onclick="checkCurrentUserRole()">Check My Role</button>
+            <div id="currentUserResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h3>Set Admin Role</h3>
+            <button class="btn" onclick="setAdminRole()">Set Current User as Admin</button>
+            <div id="setAdminResult" class="result"></div>
+        </div>
+        
+        <div class="section">
+            <h3>Test Admin Panel Button</h3>
+            <button class="btn" onclick="testAdminPanelButton()">Test Admin Panel Button</button>
+            <div id="testButtonResult" class="result"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    
+    <script>
+        let currentUser = null;
+        let currentUserData = null;
+        
+        // Initialize
+        window.firebaseAuth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('currentUserResult').innerHTML = `✅ User logged in: ${user.email}`;
+                
+                // Get user data
+                try {
+                    currentUserData = await getCurrentUserData();
+                    console.log('User data:', currentUserData);
+                } catch (error) {
+                    console.error('Error getting user data:', error);
+                }
+            } else {
+                document.getElementById('currentUserResult').innerHTML = `❌ No user logged in. Please login first.`;
+            }
+        });
+        
+        async function checkCurrentUserRole() {
+            const resultDiv = document.getElementById('currentUserResult');
+            
+            if (!currentUser) {
+                resultDiv.innerHTML = '❌ No user logged in';
+                return;
+            }
+            
+            try {
+                const database = window.firebaseDatabase;
+                const userRef = database.ref('users/' + currentUser.uid);
+                const snapshot = await userRef.once('value');
+                
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    resultDiv.innerHTML = `✅ User: ${currentUser.email}
+📧 Email: ${userData.email}
+👤 Name: ${userData.fullName}
+🔑 Role: ${userData.role || 'user'}
+🕒 Created: ${userData.createdAt}
+📊 Full Data: ${JSON.stringify(userData, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `❌ User data not found in database`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        async function setAdminRole() {
+            const resultDiv = document.getElementById('setAdminResult');
+            
+            if (!currentUser) {
+                resultDiv.innerHTML = '❌ No user logged in';
+                return;
+            }
+            
+            try {
+                const database = window.firebaseDatabase;
+                const userRef = database.ref('users/' + currentUser.uid);
+                
+                // First get current user data
+                const snapshot = await userRef.once('value');
+                let userData = {};
+                
+                if (snapshot.exists()) {
+                    userData = snapshot.val();
+                }
+                
+                // Update with admin role
+                userData.role = 'admin';
+                userData.isAdmin = true;
+                userData.adminUpdatedAt = new Date().toISOString();
+                
+                await userRef.set(userData);
+                
+                resultDiv.innerHTML = `✅ Successfully set user as admin!
+📧 Email: ${currentUser.email}
+🔑 Role: admin
+🕒 Updated: ${userData.adminUpdatedAt}`;
+                
+                // Refresh user data
+                currentUserData = await getCurrentUserData();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        function testAdminPanelButton() {
+            const resultDiv = document.getElementById('testButtonResult');
+            
+            if (!currentUser) {
+                resultDiv.innerHTML = '❌ No user logged in';
+                return;
+            }
+            
+            try {
+                // Test the addAdminPanelButton function from dashboard.js
+                const navMenu = document.querySelector('.nav-menu');
+                if (!navMenu) {
+                    // Create a test nav menu
+                    const header = document.createElement('header');
+                    header.innerHTML = `
+                        <nav class="nav-menu">
+                            <a href="#" class="nav-link">Test Link</a>
+                            <div class="user-menu">
+                                <span class="user-name">Test User</span>
+                                <button class="logout-btn">Logout</button>
+                            </div>
+                        </nav>
+                    `;
+                    document.body.appendChild(header);
+                }
+                
+                // Test admin panel button creation
+                const testNavMenu = document.querySelector('.nav-menu');
+                const testUserMenu = document.querySelector('.user-menu');
+                
+                if (testNavMenu && testUserMenu) {
+                    // Check if admin panel button already exists
+                    const existingAdminBtn = testNavMenu.querySelector('.admin-panel-btn');
+                    if (existingAdminBtn) {
+                        existingAdminBtn.remove();
+                    }
+                    
+                    // Create admin panel button
+                    const adminPanelBtn = document.createElement('a');
+                    adminPanelBtn.href = 'admin.html';
+                    adminPanelBtn.className = 'nav-link admin-panel-btn';
+                    adminPanelBtn.textContent = 'Admin Panel';
+                    adminPanelBtn.style.background = 'rgba(248, 165, 194, 0.1)';
+                    adminPanelBtn.style.border = '1px solid #f8a5c2';
+                    adminPanelBtn.style.borderRadius = '20px';
+                    adminPanelBtn.style.padding = '8px 16px';
+                    adminPanelBtn.style.color = 'white';
+                    adminPanelBtn.style.textDecoration = 'none';
+                    
+                    // Insert before user menu
+                    testNavMenu.insertBefore(adminPanelBtn, testUserMenu);
+                    
+                    resultDiv.innerHTML = `✅ Admin Panel button created successfully!
+🔗 Button href: ${adminPanelBtn.href}
+🎨 Button class: ${adminPanelBtn.className}
+📝 Button text: ${adminPanelBtn.textContent}
+👀 You should see the button in the header above`;
+                } else {
+                    resultDiv.innerHTML = `❌ Could not create test nav menu`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

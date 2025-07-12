@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Firebase Database</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .warning { background: #FF9800; }
+        .info { background: #2196F3; }
+        pre { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; overflow-x: auto; }
+        button { background: #f8a5c2; color: #121212; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>🔍 Debug Firebase Database Connection</h2>
+    <div id="results"></div>
+    
+    <button onclick="testDatabaseAccess()">Test Database Access</button>
+    <button onclick="testDatabaseRules()">Test Database Rules</button>
+    <button onclick="clearLogs()">Clear Logs</button>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            results.innerHTML += `<div class="result ${type}">[${timestamp}] ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearLogs() {
+            results.innerHTML = '';
+        }
+
+        // Firebase Config - sama dengan yang di firebase-config.js
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMD2jUich1QWj14h-nkaIR_F7dlQBOqCc",
+            authDomain: "booking-gym-mo.firebaseapp.com",
+            databaseURL: "https://booking-gym-mo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "booking-gym-mo",
+            storageBucket: "booking-gym-mo.firebasestorage.app",
+            messagingSenderId: "977848860115",
+            appId: "1:977848860115:web:b6ee470443876ff904326"
+        };
+
+        let app, database;
+
+        try {
+            // Initialize Firebase
+            app = firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            
+            log('✅ Firebase initialized successfully', 'success');
+            log(`📍 Database URL: ${firebaseConfig.databaseURL}`, 'info');
+            
+            // Test connection immediately
+            setTimeout(() => {
+                testConnection();
+            }, 1000);
+            
+        } catch (error) {
+            log('❌ Firebase initialization error: ' + error.message, 'error');
+            log('Stack trace: ' + error.stack, 'error');
+        }
+
+        function testConnection() {
+            log('🔄 Testing database connection...', 'info');
+            
+            try {
+                const connectedRef = database.ref('.info/connected');
+                
+                connectedRef.on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        log('✅ Database connection established!', 'success');
+                        testBasicOperations();
+                    } else {
+                        log('❌ Database not connected', 'error');
+                        log('⚠️ Possible causes:', 'warning');
+                        log('1. Database rules deny access', 'warning');
+                        log('2. Database region mismatch', 'warning');
+                        log('3. Network connectivity issues', 'warning');
+                    }
+                });
+                
+                // Set timeout for connection test
+                setTimeout(() => {
+                    log('⏱️ Connection timeout - checking database status...', 'warning');
+                    checkDatabaseStatus();
+                }, 5000);
+                
+            } catch (error) {
+                log('❌ Connection test error: ' + error.message, 'error');
+                log('Error code: ' + error.code, 'error');
+            }
+        }
+
+        function checkDatabaseStatus() {
+            log('🔍 Checking database configuration...', 'info');
+            
+            // Try to access database info
+            try {
+                const serverTimeRef = database.ref('.info/serverTimeOffset');
+                serverTimeRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        log('✅ Database is accessible', 'success');
+                        log('Server time offset: ' + snapshot.val(), 'info');
+                    } else {
+                        log('❌ Database not accessible', 'error');
+                    }
+                });
+            } catch (error) {
+                log('❌ Database status check failed: ' + error.message, 'error');
+            }
+        }
+
+        function testBasicOperations() {
+            log('🔄 Testing basic database operations...', 'info');
+            
+            const testRef = database.ref('debug-test');
+            const testData = {
+                message: 'Debug test',
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                testId: Math.random().toString(36).substr(2, 9)
+            };
+            
+            // Test write
+            testRef.set(testData)
+                .then(() => {
+                    log('✅ Write operation successful', 'success');
+                    
+                    // Test read
+                    return testRef.once('value');
+                })
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        log('✅ Read operation successful', 'success');
+                        log('Data: ' + JSON.stringify(snapshot.val()), 'info');
+                        
+                        // Clean up test data
+                        return testRef.remove();
+                    } else {
+                        log('❌ No data found in read test', 'error');
+                    }
+                })
+                .then(() => {
+                    log('✅ Delete operation successful', 'success');
+                    log('🎉 All basic operations working!', 'success');
+                })
+                .catch((error) => {
+                    log('❌ Database operation failed: ' + error.message, 'error');
+                    log('Error code: ' + error.code, 'error');
+                    
+                    if (error.code === 'PERMISSION_DENIED') {
+                        log('⚠️ Permission denied - check database rules', 'warning');
+                        suggestRulesFix();
+                    }
+                });
+        }
+
+        function testDatabaseAccess() {
+            log('🔄 Testing database access permissions...', 'info');
+            
+            // Test read access
+            database.ref('test-access').once('value')
+                .then((snapshot) => {
+                    log('✅ Read access granted', 'success');
+                })
+                .catch((error) => {
+                    log('❌ Read access denied: ' + error.message, 'error');
+                    if (error.code === 'PERMISSION_DENIED') {
+                        suggestRulesFix();
+                    }
+                });
+            
+            // Test write access
+            database.ref('test-access').set({ test: true })
+                .then(() => {
+                    log('✅ Write access granted', 'success');
+                })
+                .catch((error) => {
+                    log('❌ Write access denied: ' + error.message, 'error');
+                    if (error.code === 'PERMISSION_DENIED') {
+                        suggestRulesFix();
+                    }
+                });
+        }
+
+        function testDatabaseRules() {
+            log('🔄 Testing database rules...', 'info');
+            
+            // Try to access root
+            database.ref('/').once('value')
+                .then((snapshot) => {
+                    log('✅ Root access successful', 'success');
+                })
+                .catch((error) => {
+                    log('❌ Root access failed: ' + error.message, 'error');
+                    suggestRulesFix();
+                });
+        }
+
+        function suggestRulesFix() {
+            log('💡 SOLUSI: Update Database Rules', 'warning');
+            log('1. Buka Firebase Console', 'info');
+            log('2. Pilih Realtime Database → Rules', 'info');
+            log('3. Ganti rules dengan:', 'info');
+            log(`<pre>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</pre>`, 'info');
+            log('4. Klik Publish', 'info');
+            log('⚠️ Ini hanya untuk testing - jangan gunakan di production!', 'warning');
+        }
+
+        // Capture console errors
+        window.addEventListener('error', (event) => {
+            log('❌ JavaScript Error: ' + event.message, 'error');
+            log('File: ' + event.filename + ':' + event.lineno, 'error');
+        });
+
+        // Capture unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            log('❌ Unhandled Promise Rejection: ' + event.reason, 'error');
+        });
+    </script>
+</body>
+</html> 

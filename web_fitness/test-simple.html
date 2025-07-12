@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Firebase Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .success { background-color: #4CAF50; }
+        .error { background-color: #F44336; }
+        .info { background-color: #2196F3; }
+        button {
+            background-color: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 3px;
+            font-size: 12px;
+        }
+        input {
+            padding: 8px;
+            margin: 3px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            width: 150px;
+        }
+        .section {
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Firebase Simple Test</h1>
+    
+    <div id="status"></div>
+    
+    <div class="section">
+        <h3>1. Authentication Test</h3>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="123456">
+        <input type="text" id="name" placeholder="Name" value="Test User">
+        <br>
+        <button onclick="testRegister()">Register</button>
+        <button onclick="testLogin()">Login</button>
+        <button onclick="testLogout()">Logout</button>
+        <button onclick="testAuthState()">Check Auth</button>
+    </div>
+    
+    <div class="section">
+        <h3>2. Classes Test</h3>
+        <button onclick="testCreateClass()">Create Test Class</button>
+        <button onclick="testGetClasses()">Get All Classes</button>
+        <button onclick="testListenClasses()">Listen to Classes</button>
+    </div>
+    
+    <div class="section">
+        <h3>3. Results</h3>
+        <div id="results" style="max-height: 300px; overflow-y: auto;"></div>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config and Functions -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes-simple.js"></script>
+    
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message) {
+            const resultsDiv = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="status info">${time}: ${message}</div>`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Wait for Firebase to initialize
+        setTimeout(() => {
+            if (window.firebaseAuth && window.firebaseDatabase) {
+                showStatus('✅ Firebase initialized successfully!', 'success');
+                addResult('Firebase Auth and Database ready');
+                
+                // Check if functions are available
+                const authFunctions = ['registerUser', 'loginUser', 'logoutUser', 'checkAuthState'];
+                const classFunctions = ['createGymClass', 'getAllClasses', 'getClassById'];
+                
+                authFunctions.forEach(func => {
+                    if (typeof window[func] === 'function') {
+                        addResult(`✅ ${func} function available`);
+                    } else {
+                        addResult(`❌ ${func} function missing`);
+                    }
+                });
+                
+                classFunctions.forEach(func => {
+                    if (typeof window[func] === 'function') {
+                        addResult(`✅ ${func} function available`);
+                    } else {
+                        addResult(`❌ ${func} function missing`);
+                    }
+                });
+                
+            } else {
+                showStatus('❌ Firebase initialization failed', 'error');
+                addResult('Firebase not properly initialized');
+            }
+        }, 2000);
+
+        async function testRegister() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+
+            try {
+                showStatus('Testing registration...', 'info');
+                const result = await registerUser(email, password, name);
+                if (result.success) {
+                    showStatus('✅ Registration successful!', 'success');
+                    addResult(`User registered: ${email}`);
+                } else {
+                    showStatus('❌ Registration failed: ' + result.error, 'error');
+                    addResult(`Registration error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Registration error: ' + error.message, 'error');
+                addResult(`Registration exception: ${error.message}`);
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                showStatus('Testing login...', 'info');
+                const result = await loginUser(email, password);
+                if (result.success) {
+                    showStatus('✅ Login successful!', 'success');
+                    addResult(`User logged in: ${email}`);
+                } else {
+                    showStatus('❌ Login failed: ' + result.error, 'error');
+                    addResult(`Login error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Login error: ' + error.message, 'error');
+                addResult(`Login exception: ${error.message}`);
+            }
+        }
+
+        async function testLogout() {
+            try {
+                showStatus('Testing logout...', 'info');
+                const result = await logoutUser();
+                if (result.success) {
+                    showStatus('✅ Logout successful!', 'success');
+                    addResult('User logged out');
+                } else {
+                    showStatus('❌ Logout failed: ' + result.error, 'error');
+                    addResult(`Logout error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Logout error: ' + error.message, 'error');
+                addResult(`Logout exception: ${error.message}`);
+            }
+        }
+
+        function testAuthState() {
+            try {
+                showStatus('Testing auth state...', 'info');
+                checkAuthState((user) => {
+                    if (user) {
+                        showStatus('✅ User is logged in', 'success');
+                        addResult(`Auth state: ${user.email} is logged in`);
+                    } else {
+                        showStatus('ℹ️ No user logged in', 'info');
+                        addResult('Auth state: No user logged in');
+                    }
+                });
+            } catch (error) {
+                showStatus('❌ Auth state error: ' + error.message, 'error');
+                addResult(`Auth state exception: ${error.message}`);
+            }
+        }
+
+        async function testCreateClass() {
+            try {
+                showStatus('Testing create class...', 'info');
+                const classData = {
+                    name: 'Test Yoga Class',
+                    category: 'yoga',
+                    date: '2024-01-20',
+                    time: '10:00',
+                    duration: 60,
+                    trainer: 'Test Trainer',
+                    maxParticipants: 15,
+                    description: 'Test class created by automated test'
+                };
+                
+                const result = await createGymClass(classData);
+                if (result.success) {
+                    showStatus('✅ Class created successfully!', 'success');
+                    addResult(`Class created: ${result.classId}`);
+                } else {
+                    showStatus('❌ Create class failed: ' + result.error, 'error');
+                    addResult(`Create class error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Create class error: ' + error.message, 'error');
+                addResult(`Create class exception: ${error.message}`);
+            }
+        }
+
+        async function testGetClasses() {
+            try {
+                showStatus('Testing get classes...', 'info');
+                const result = await getAllClasses();
+                if (result.success) {
+                    showStatus(`✅ Got ${result.classes.length} classes`, 'success');
+                    addResult(`Retrieved ${result.classes.length} classes from database`);
+                    result.classes.forEach((cls, index) => {
+                        addResult(`  ${index + 1}. ${cls.name} - ${cls.date} ${cls.time}`);
+                    });
+                } else {
+                    showStatus('❌ Get classes failed: ' + result.error, 'error');
+                    addResult(`Get classes error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Get classes error: ' + error.message, 'error');
+                addResult(`Get classes exception: ${error.message}`);
+            }
+        }
+
+        function testListenClasses() {
+            try {
+                showStatus('Testing listen to classes...', 'info');
+                const listener = listenToClasses((classes) => {
+                    addResult(`Real-time update: ${classes.length} classes in database`);
+                });
+                
+                if (listener) {
+                    showStatus('✅ Listening to classes updates', 'success');
+                    addResult('Started listening to real-time class updates');
+                } else {
+                    showStatus('❌ Failed to start listening', 'error');
+                    addResult('Failed to start real-time listener');
+                }
+            } catch (error) {
+                showStatus('❌ Listen error: ' + error.message, 'error');
+                addResult(`Listen exception: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html> 

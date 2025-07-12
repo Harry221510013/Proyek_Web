@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Firebase Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #121212; color: white; }
+        .result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #4CAF50; }
+        .error { background: #F44336; }
+        .info { background: #2196F3; }
+    </style>
+</head>
+<body>
+    <h2>🔥 Quick Firebase Database Test</h2>
+    <div id="results"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            results.innerHTML += `<div class="result ${type}">${message}</div>`;
+        }
+
+        // Firebase Config
+        const config = {
+            databaseURL: "https://booking-gym-mo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "booking-gym-mo"
+        };
+
+        try {
+            // Initialize Firebase
+            firebase.initializeApp(config);
+            const database = firebase.database();
+            
+            log('✅ Firebase initialized', 'success');
+            
+            // Test connection
+            const connectedRef = database.ref('.info/connected');
+            connectedRef.on('value', (snapshot) => {
+                if (snapshot.val() === true) {
+                    log('✅ Database CONNECTED!', 'success');
+                    
+                    // Try to write test data
+                    database.ref('test-connection').set({
+                        message: 'Test successful',
+                        timestamp: Date.now()
+                    }).then(() => {
+                        log('✅ Write test SUCCESS', 'success');
+                    }).catch((error) => {
+                        log('❌ Write test FAILED: ' + error.message, 'error');
+                    });
+                    
+                } else {
+                    log('❌ Database NOT CONNECTED', 'error');
+                }
+            });
+            
+        } catch (error) {
+            log('❌ Firebase init error: ' + error.message, 'error');
+        }
+    </script>
+</body>
+</html> 

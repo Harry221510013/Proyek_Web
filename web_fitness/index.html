@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLife - Elevate Your Fitness Journey</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">FitLife</div>
+        <div class="auth">
+            <button class="login-btn" onclick="location.href='login.html'">Log In</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Elevate Your Fitness Journey</h1>
+                <p>Discover a variety of fitness classes and expert trainers to help you achieve your goals.</p>
+                <button class="cta-btn" onclick="location.href='dashboard.html'">Lihat Jadwal Kelas</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes-simple.js"></script>
+    
+    <script>
+        // Wait for Firebase to initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                // Check if user is already logged in
+                checkAuthState((user) => {
+                    if (user) {
+                        // Update login button to show user name and logout option
+                        const authDiv = document.querySelector('.auth');
+                        authDiv.innerHTML = `
+                            <span style="margin-right: 15px; color: #f8a5c2;">Halo, ${user.displayName || user.email}</span>
+                            <button class="login-btn" onclick="location.href='dashboard.html'">Dashboard</button>
+                        `;
+                    }
+                });
+            }, 1000); // Wait 1 second for Firebase to initialize
+        });
+    </script>
+</body>
+</html> 

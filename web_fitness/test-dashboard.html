@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .success { background-color: #4CAF50; }
+        .error { background-color: #F44336; }
+        .info { background-color: #2196F3; }
+        button {
+            background-color: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 3px;
+            font-size: 12px;
+        }
+        input {
+            padding: 8px;
+            margin: 3px;
+            border-radius: 5px;
+            border: none;
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            width: 150px;
+        }
+        .section {
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Test Dashboard Functions</h1>
+    
+    <div id="status"></div>
+    
+    <div class="section">
+        <h3>1. Login Test</h3>
+        <input type="email" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="123456">
+        <br>
+        <button onclick="testLogin()">Login</button>
+        <button onclick="testLogout()">Logout</button>
+        <button onclick="testCheckAuth()">Check Auth</button>
+    </div>
+    
+    <div class="section">
+        <h3>2. Dashboard Functions Test</h3>
+        <button onclick="testLoadClasses()">Load Classes</button>
+        <button onclick="testLoadBookings()">Load Bookings</button>
+        <button onclick="testUserData()">Get User Data</button>
+    </div>
+    
+    <div class="section">
+        <h3>3. Results</h3>
+        <div id="results" style="max-height: 300px; overflow-y: auto;"></div>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config and Functions -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message) {
+            const resultsDiv = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="status info">${time}: ${message}</div>`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Wait for Firebase to initialize
+        setTimeout(() => {
+            if (window.firebaseAuth && window.firebaseDatabase) {
+                showStatus('✅ Firebase initialized successfully!', 'success');
+                addResult('Firebase Auth and Database ready');
+                
+                // Check if functions are available
+                const requiredFunctions = [
+                    'checkAuthState', 'loginUser', 'logoutUser', 'getCurrentUserData',
+                    'getAllClasses', 'getClassById', 'listenToClasses',
+                    'createBooking', 'getUserBookings', 'cancelBooking', 'listenToUserBookings'
+                ];
+                
+                requiredFunctions.forEach(func => {
+                    if (typeof window[func] === 'function') {
+                        addResult(`✅ ${func} function available`);
+                    } else {
+                        addResult(`❌ ${func} function missing`);
+                    }
+                });
+                
+            } else {
+                showStatus('❌ Firebase initialization failed', 'error');
+                addResult('Firebase not properly initialized');
+            }
+        }, 2000);
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                showStatus('Testing login...', 'info');
+                const result = await loginUser(email, password);
+                if (result.success) {
+                    showStatus('✅ Login successful!', 'success');
+                    addResult(`User logged in: ${email}`);
+                } else {
+                    showStatus('❌ Login failed: ' + result.error, 'error');
+                    addResult(`Login error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Login error: ' + error.message, 'error');
+                addResult(`Login exception: ${error.message}`);
+            }
+        }
+
+        async function testLogout() {
+            try {
+                showStatus('Testing logout...', 'info');
+                const result = await logoutUser();
+                if (result.success) {
+                    showStatus('✅ Logout successful!', 'success');
+                    addResult('User logged out');
+                } else {
+                    showStatus('❌ Logout failed: ' + result.error, 'error');
+                    addResult(`Logout error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Logout error: ' + error.message, 'error');
+                addResult(`Logout exception: ${error.message}`);
+            }
+        }
+
+        function testCheckAuth() {
+            try {
+                showStatus('Testing auth state...', 'info');
+                checkAuthState((user) => {
+                    if (user) {
+                        showStatus('✅ User authenticated!', 'success');
+                        addResult(`Current user: ${user.email}`);
+                    } else {
+                        showStatus('❌ No user authenticated', 'error');
+                        addResult('No current user');
+                    }
+                });
+            } catch (error) {
+                showStatus('❌ Auth check error: ' + error.message, 'error');
+                addResult(`Auth check exception: ${error.message}`);
+            }
+        }
+
+        async function testLoadClasses() {
+            try {
+                showStatus('Testing load classes...', 'info');
+                const result = await getAllClasses();
+                if (result.success) {
+                    showStatus('✅ Classes loaded successfully!', 'success');
+                    addResult(`Found ${result.classes.length} classes`);
+                } else {
+                    showStatus('❌ Load classes failed: ' + result.error, 'error');
+                    addResult(`Load classes error: ${result.error}`);
+                }
+            } catch (error) {
+                showStatus('❌ Load classes error: ' + error.message, 'error');
+                addResult(`Load classes exception: ${error.message}`);
+            }
+        }
+
+        async function testLoadBookings() {
+            try {
+                showStatus('Testing load bookings...', 'info');
+                // First check if user is authenticated
+                checkAuthState(async (user) => {
+                    if (user) {
+                        const result = await getUserBookings(user.uid);
+                        if (result.success) {
+                            showStatus('✅ Bookings loaded successfully!', 'success');
+                            addResult(`Found ${result.bookings.length} bookings`);
+                        } else {
+                            showStatus('❌ Load bookings failed: ' + result.error, 'error');
+                            addResult(`Load bookings error: ${result.error}`);
+                        }
+                    } else {
+                        showStatus('❌ User not authenticated', 'error');
+                        addResult('Please login first');
+                    }
+                });
+            } catch (error) {
+                showStatus('❌ Load bookings error: ' + error.message, 'error');
+                addResult(`Load bookings exception: ${error.message}`);
+            }
+        }
+
+        async function testUserData() {
+            try {
+                showStatus('Testing get user data...', 'info');
+                const result = await getCurrentUserData();
+                if (result) {
+                    showStatus('✅ User data loaded successfully!', 'success');
+                    addResult(`User data: ${JSON.stringify(result)}`);
+                } else {
+                    showStatus('❌ No user data found', 'error');
+                    addResult('No user data or not authenticated');
+                }
+            } catch (error) {
+                showStatus('❌ Get user data error: ' + error.message, 'error');
+                addResult(`Get user data exception: ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html> 

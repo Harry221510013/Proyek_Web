@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLife - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">FitLife Admin</div>
+        <nav class="nav-menu">
+            <a href="#dashboard" class="nav-link">Dashboard</a>
+            <a href="#classes" class="nav-link">Kelola Kelas</a>
+            <a href="#bookings" class="nav-link">Booking</a>
+            <a href="#users" class="nav-link">Users</a>
+            <a href="admin.html" class="nav-link admin-panel-btn">Admin Dashboard</a>
+            <div class="user-menu">
+                <span class="user-name" id="adminName">Admin</span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        <!-- Dashboard Stats -->
+        <section id="dashboard" class="dashboard-section">
+            <div class="section-header">
+                <h2>Dashboard</h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Kelas</h3>
+                    <div class="stat-number" id="totalClasses">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Booking</h3>
+                    <div class="stat-number" id="totalBookings">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total User</h3>
+                    <div class="stat-number" id="totalUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Kelas Aktif</h3>
+                    <div class="stat-number" id="activeClasses">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Add Class Form -->
+        <section id="classes" class="dashboard-section">
+            <div class="section-header">
+                <h2>Tambah Kelas Baru</h2>
+                <button class="add-btn" onclick="resetForm()">Reset Form</button>
+            </div>
+            
+            <div id="statusMessage"></div>
+            
+            <div id="loadingMessage" style="display: none; text-align: center; padding: 20px;">
+                <div style="color: #f8a5c2;">⏳ Loading...</div>
+            </div>
+            
+            <form id="addClassForm" class="profile-form">
+                <div class="form-group">
+                    <label for="className">Nama Kelas</label>
+                    <input type="text" id="className" name="name" required placeholder="Contoh: Yoga Morning">
+                </div>
+                
+                <div class="form-group">
+                    <label for="classCategory">Kategori</label>
+                    <select id="classCategory" name="category" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="strength">Strength Training</option>
+                        <option value="yoga">Yoga</option>
+                        <option value="pilates">Pilates</option>
+                        <option value="zumba">Zumba</option>
+                        <option value="aerobic">Aerobic</option>
+                        <option value="boxing">Boxing</option>
+                        <option value="dance">Dance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classDate">Tanggal</label>
+                    <input type="date" id="classDate" name="date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classTime">Waktu</label>
+                    <input type="time" id="classTime" name="time" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classDuration">Durasi (menit)</label>
+                    <input type="number" id="classDuration" name="duration" min="30" max="180" value="60" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classTrainer">Trainer</label>
+                    <input type="text" id="classTrainer" name="trainer" required placeholder="Nama trainer">
+                </div>
+                
+                <div class="form-group">
+                    <label for="classMaxParticipants">Maksimal Peserta</label>
+                    <input type="number" id="classMaxParticipants" name="maxParticipants" min="1" max="50" value="20" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classPrice">Harga (Rp)</label>
+                    <input type="number" id="classPrice" name="price" min="0" value="50000" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classDescription">Deskripsi</label>
+                    <textarea id="classDescription" name="description" rows="3" placeholder="Deskripsi kelas..."></textarea>
+                </div>
+                
+                <button type="submit" class="update-btn">Tambah Kelas</button>
+            </form>
+        </section>
+
+        <!-- Classes List -->
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h2>Daftar Kelas</h2>
+                <div class="filter-controls">
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">Semua Kategori</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="strength">Strength Training</option>
+                        <option value="yoga">Yoga</option>
+                        <option value="pilates">Pilates</option>
+                        <option value="zumba">Zumba</option>
+                        <option value="aerobic">Aerobic</option>
+                        <option value="boxing">Boxing</option>
+                        <option value="dance">Dance</option>
+                    </select>
+                    <button class="add-btn" onclick="loadClasses()">Refresh</button>
+                </div>
+            </div>
+            
+            <div class="classes-grid" id="classesList">
+                <!-- Classes will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Bookings Management -->
+        <section id="bookings" class="dashboard-section">
+            <div class="section-header">
+                <h2>Kelola Booking</h2>
+                <div class="filter-controls">
+                    <select id="bookingStatusFilter" class="filter-select">
+                        <option value="">Semua Status</option>
+                        <option value="confirmed">Terkonfirmasi</option>
+                        <option value="cancelled">Dibatalkan</option>
+                        <option value="completed">Selesai</option>
+                    </select>
+                    <input type="date" id="bookingDateFilter" class="filter-input">
+                </div>
+            </div>
+            <div class="bookings-list" id="bookingsList">
+                <!-- Bookings will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Users Management -->
+        <section id="users" class="dashboard-section">
+            <div class="section-header">
+                <h2>Kelola User</h2>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Total Booking</th>
+                            <th>Bergabung</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Class Details Modal -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="classModalContent">
+                <!-- Class details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <script>
+        let currentAdminUser = null;
+        let hasAdminAccess = false;
+        let adminClasses = [];
+        let adminBookings = [];
+
+        // Wait for Firebase to initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                initializeAdmin();
+            }, 2000);
+            
+            // Setup form handler
+            document.getElementById('addClassForm').addEventListener('submit', handleAddClass);
+        });
+
+        async function initializeAdmin() {
+            try {
+                // Check authentication
+                const auth = window.firebaseAuth;
+                if (!auth) {
+                    showNotification('Firebase tidak terhubung', 'error');
+                    return;
+                }
+
+                // Check if user is logged in
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentAdminUser = user;
+                        
+                        // Check if user is admin
+                        const userData = await getCurrentUserData();
+                        if (userData && userData.role === 'admin') {
+                            hasAdminAccess = true;
+                            document.getElementById('adminName').textContent = userData.fullName || user.email;
+                            showNotification('Selamat datang, Admin!', 'success');
+                            loadDashboardData();
+                        } else {
+                            showNotification('Akses ditolak. Anda bukan admin.', 'error');
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 2000);
+                        }
+                    } else {
+                        showNotification('Anda belum login', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
+                });
+
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            }
+        }
+
+        function showNotification(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="notification notification-${type}">${message}</div>`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        function showLoading(show) {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) {
+                loadingDiv.style.display = show ? 'block' : 'none';
+            }
+        }
+
+        async function getAllClasses() {
+            try {
+                const database = window.firebaseDatabase;
+                const classesSnapshot = await database.ref('classes').once('value');
+                
+                if (!classesSnapshot.exists()) {
+                    return [];
+                }
+                
+                const classesData = classesSnapshot.val();
+                const classesList = [];
+                
+                Object.keys(classesData).forEach(classId => {
+                    const classInfo = classesData[classId];
+                    classesList.push({
+                        id: classId,
+                        ...classInfo
+                    });
+                });
+                
+                return classesList;
+            } catch (error) {
+                console.error('Error getting classes:', error);
+                return [];
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                showLoading(true);
+                
+                // Load statistics
+                await loadStats();
+                
+                // Load classes
+                await loadClasses();
+                
+                // Load bookings
+                await loadBookings();
+                
+                // Load users
+                await loadUsers();
+                
+                showLoading(false);
+                
+            } catch (error) {
+                showNotification('Error loading dashboard: ' + error.message, 'error');
+                showLoading(false);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const database = window.firebaseDatabase;
+                
+                // Count classes
+                const classesSnapshot = await database.ref('classes').once('value');
+                const classesCount = classesSnapshot.exists() ? Object.keys(classesSnapshot.val()).length : 0;
+                document.getElementById('totalClasses').textContent = classesCount;
+                
+                // Count active classes (future dates)
+                let activeCount = 0;
+                if (classesSnapshot.exists()) {
+                    const classes = classesSnapshot.val();
+                    const today = new Date().toISOString().split('T')[0];
+                    activeCount = Object.values(classes).filter(cls => cls.date >= today).length;
+                }
+                document.getElementById('activeClasses').textContent = activeCount;
+                
+                // Count users
+                const usersSnapshot = await database.ref('users').once('value');
+                const usersCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+                document.getElementById('totalUsers').textContent = usersCount;
+                
+                // Count bookings
+                const bookingsSnapshot = await database.ref('bookings').once('value');
+                let bookingsCount = 0;
+                if (bookingsSnapshot.exists()) {
+                    const bookings = bookingsSnapshot.val();
+                    Object.values(bookings).forEach(userBookings => {
+                        bookingsCount += Object.keys(userBookings).length;
+                    });
+                }
+                document.getElementById('totalBookings').textContent = bookingsCount;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadClasses() {
+            const classesDiv = document.getElementById('classesList');
+            
+            try {
+                const classes = await getAllClasses();
+                adminClasses = classes;
+                
+                if (classes.length === 0) {
+                    classesDiv.innerHTML = '<div class="no-data">Belum ada kelas yang dibuat.</div>';
+                } else {
+                    classesDiv.innerHTML = '';
+                    classes.forEach(cls => {
+                        const classCard = createClassCard(cls);
+                        classesDiv.appendChild(classCard);
+                    });
+                }
+                
+            } catch (error) {
+                classesDiv.innerHTML = `<div class="notification notification-error">Error loading classes: ${error.message}</div>`;
+            }
+        }
+
+        function createClassCard(cls) {
+            const card = document.createElement('div');
+            card.className = 'class-card';
+            
+            const participantsCount = cls.participants ? Object.keys(cls.participants).length : 0;
+            const isFullyBooked = participantsCount >= cls.maxParticipants;
+            
+            card.innerHTML = `
+                <div class="class-header">
+                    <div class="class-name">${cls.name}</div>
+                    <div class="class-category">${cls.category}</div>
+                </div>
+                <div class="class-info">
+                    <div class="info-item">
+                        <span class="info-label">Tanggal:</span>
+                        <span class="info-value">${cls.date}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Waktu:</span>
+                        <span class="info-value">${cls.time}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Trainer:</span>
+                        <span class="info-value">${cls.trainer}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Durasi:</span>
+                        <span class="info-value">${cls.duration || 60} menit</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Peserta:</span>
+                        <span class="info-value">${participantsCount}/${cls.maxParticipants}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Harga:</span>
+                        <span class="info-value">Rp ${(cls.price || 50000).toLocaleString()}</span>
+                    </div>
+                </div>
+                <div class="class-description">
+                    ${cls.description || 'Tidak ada deskripsi'}
+                </div>
+                <div class="class-actions">
+                    <button class="view-btn" onclick="viewClassDetails('${cls.id}')">Detail</button>
+                    <button class="edit-btn" onclick="editClass('${cls.id}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteClass('${cls.id}')">Hapus</button>
+                    ${isFullyBooked ? '<span class="status full">PENUH</span>' : '<span class="status available">TERSEDIA</span>'}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        async function loadBookings() {
+            const bookingsDiv = document.getElementById('bookingsList');
+            
+            try {
+                const database = window.firebaseDatabase;
+                const bookingsSnapshot = await database.ref('bookings').once('value');
+                
+                if (!bookingsSnapshot.exists()) {
+                    bookingsDiv.innerHTML = '<div class="no-data">Belum ada booking.</div>';
+                    return;
+                }
+                
+                const bookings = bookingsSnapshot.val();
+                const bookingsList = [];
+                
+                // Convert bookings to array
+                Object.keys(bookings).forEach(userId => {
+                    const userBookings = bookings[userId];
+                    Object.keys(userBookings).forEach(classId => {
+                        const booking = userBookings[classId];
+                        bookingsList.push({
+                            ...booking,
+                            userId: userId,
+                            classId: classId
+                        });
+                    });
+                });
+                
+                // Sort by booking date
+                bookingsList.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+                
+                bookingsDiv.innerHTML = '';
+                bookingsList.forEach(booking => {
+                    const bookingCard = createBookingCard(booking);
+                    bookingsDiv.appendChild(bookingCard);
+                });
+                
+            } catch (error) {
+                bookingsDiv.innerHTML = `<div class="notification notification-error">Error loading bookings: ${error.message}</div>`;
+            }
+        }
+
+        function createBookingCard(booking) {
+            const card = document.createElement('div');
+            card.className = 'booking-card';
+            
+            const bookingDate = new Date(booking.bookingDate).toLocaleDateString('id-ID');
+            
+            card.innerHTML = `
+                <div class="booking-header">
+                    <div class="booking-class-name">${booking.className}</div>
+                    <div class="booking-status status-${booking.status}">${booking.status}</div>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-info">
+                        <div class="info-item">
+                            <span class="info-label">User ID:</span>
+                            <span class="info-value">${booking.userId}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tanggal Kelas:</span>
+                            <span class="info-value">${booking.classDate}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Waktu:</span>
+                            <span class="info-value">${booking.classTime}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Booking:</span>
+                            <span class="info-value">${bookingDate}</span>
+                        </div>
+                    </div>
+                    <div class="booking-actions">
+                        ${booking.status === 'confirmed' ? 
+                            `<button class="cancel-btn" onclick="cancelBookingAdmin('${booking.userId}', '${booking.classId}')">Batalkan</button>` : 
+                            ''
+                        }
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        async function loadUsers() {
+            const usersTableBody = document.getElementById('usersTableBody');
+            
+            try {
+                const database = window.firebaseDatabase;
+                const usersSnapshot = await database.ref('users').once('value');
+                
+                if (!usersSnapshot.exists()) {
+                    usersTableBody.innerHTML = '<tr><td colspan="6">Belum ada user terdaftar.</td></tr>';
+                    return;
+                }
+                
+                const users = usersSnapshot.val();
+                usersTableBody.innerHTML = '';
+                
+                Object.keys(users).forEach(userId => {
+                    const user = users[userId];
+                    const row = document.createElement('tr');
+                    
+                    const joinDate = new Date(user.createdAt).toLocaleDateString('id-ID');
+                    
+                    row.innerHTML = `
+                        <td>${user.fullName || 'N/A'}</td>
+                        <td>${user.email}</td>
+                        <td><span class="status ${user.role === 'admin' ? 'full' : 'available'}">${user.role || 'user'}</span></td>
+                        <td>0</td>
+                        <td>${joinDate}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editUser('${userId}')">Edit</button>
+                        </td>
+                    `;
+                    
+                    usersTableBody.appendChild(row);
+                });
+                
+            } catch (error) {
+                usersTableBody.innerHTML = `<tr><td colspan="6">Error loading users: ${error.message}</td></tr>`;
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('addClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!hasAdminAccess) {
+                showNotification('Akses ditolak', 'error');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const classData = {
+                name: formData.get('name'),
+                category: formData.get('category'),
+                date: formData.get('date'),
+                time: formData.get('time'),
+                duration: parseInt(formData.get('duration')),
+                trainer: formData.get('trainer'),
+                maxParticipants: parseInt(formData.get('maxParticipants')),
+                price: parseInt(formData.get('price')),
+                description: formData.get('description'),
+                createdBy: currentAdminUser.uid,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                showLoading(true);
+                
+                const result = await createClass(classData);
+                
+                if (result.success) {
+                    showNotification('Kelas berhasil ditambahkan!', 'success');
+                    resetForm();
+                    loadClasses();
+                    loadStats();
+                } else {
+                    showNotification('Error: ' + result.error, 'error');
+                }
+                
+                showLoading(false);
+                
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+                showLoading(false);
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('addClassForm').reset();
+            
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('classDate').value = tomorrow.toISOString().split('T')[0];
+            
+            showNotification('Form direset', 'info');
+        }
+
+        function viewClassDetails(classId) {
+            const cls = adminClasses.find(c => c.id === classId);
+            if (!cls) return;
+            
+            const modal = document.getElementById('classModal');
+            const content = document.getElementById('classModalContent');
+            
+            content.innerHTML = `
+                <div class="modal-class-details">
+                    <h2>${cls.name}</h2>
+                    <div class="class-info-grid">
+                        <div><strong>Kategori:</strong> ${cls.category}</div>
+                        <div><strong>Tanggal:</strong> ${cls.date}</div>
+                        <div><strong>Waktu:</strong> ${cls.time}</div>
+                        <div><strong>Durasi:</strong> ${cls.duration || 60} menit</div>
+                        <div><strong>Trainer:</strong> ${cls.trainer}</div>
+                        <div><strong>Harga:</strong> Rp ${(cls.price || 50000).toLocaleString()}</div>
+                    </div>
+                    <div class="class-description-full">
+                        <h3>Deskripsi</h3>
+                        <p>${cls.description || 'Tidak ada deskripsi'}</p>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('classModal').style.display = 'none';
+        }
+
+        async function editClass(classId) {
+            alert('Fitur edit akan segera tersedia. Class ID: ' + classId);
+        }
+
+        async function deleteClass(classId) {
+            if (!hasAdminAccess) {
+                showNotification('Akses ditolak', 'error');
+                return;
+            }
+            
+            if (confirm('Apakah Anda yakin ingin menghapus kelas ini?')) {
+                try {
+                    showLoading(true);
+                    
+                    const result = await window.deleteClass(classId);
+                    
+                    if (result.success) {
+                        showNotification('Kelas berhasil dihapus!', 'success');
+                        loadClasses();
+                        loadStats();
+                    } else {
+                        showNotification('Error: ' + result.error, 'error');
+                    }
+                    
+                    showLoading(false);
+                    
+                } catch (error) {
+                    showNotification('Error: ' + error.message, 'error');
+                    showLoading(false);
+                }
+            }
+        }
+
+        async function cancelBookingAdmin(userId, classId) {
+            if (confirm('Apakah Anda yakin ingin membatalkan booking ini?')) {
+                try {
+                    showLoading(true);
+                    
+                    const database = window.firebaseDatabase;
+                    await database.ref(`bookings/${userId}/${classId}`).update({
+                        status: 'cancelled',
+                        cancelledBy: 'admin',
+                        cancelledAt: new Date().toISOString()
+                    });
+                    
+                    showNotification('Booking berhasil dibatalkan!', 'success');
+                    loadBookings();
+                    
+                    showLoading(false);
+                    
+                } catch (error) {
+                    showNotification('Error: ' + error.message, 'error');
+                    showLoading(false);
+                }
+            }
+        }
+
+        function editUser(userId) {
+            alert('Fitur edit user akan segera tersedia. User ID: ' + userId);
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showNotification('Error logout: ' + error.message, 'error');
+            }
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.style.display = show ? 'flex' : 'none';
+        }
+
+        // Set default date when page loads
+        setTimeout(() => {
+            resetForm();
+        }, 3000);
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('classModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Category filter
+        document.getElementById('categoryFilter').addEventListener('change', (e) => {
+            const category = e.target.value;
+            const filteredClasses = category ? adminClasses.filter(cls => cls.category === category) : adminClasses;
+            
+            const classesDiv = document.getElementById('classesList');
+            classesDiv.innerHTML = '';
+            
+            filteredClasses.forEach(cls => {
+                const classCard = createClassCard(cls);
+                classesDiv.appendChild(classCard);
+            });
+        });
+
+        // Reset form function
+        function resetForm() {
+            document.getElementById('addClassForm').reset();
+            showNotification('Form telah direset', 'info');
+        }
+
+        // Handle add class form submission
+        async function handleAddClass(e) {
+            e.preventDefault();
+            
+            if (!hasAdminAccess) {
+                showNotification('Akses ditolak', 'error');
+                return;
+            }
+            
+            try {
+                showLoading(true);
+                
+                const formData = new FormData(e.target);
+                const classData = {
+                    name: formData.get('name'),
+                    category: formData.get('category'),
+                    date: formData.get('date'),
+                    time: formData.get('time'),
+                    duration: parseInt(formData.get('duration')),
+                    trainer: formData.get('trainer'),
+                    maxParticipants: parseInt(formData.get('maxParticipants')),
+                    price: parseInt(formData.get('price')),
+                    description: formData.get('description'),
+                    createdAt: new Date().toISOString(),
+                    participants: {}
+                };
+                
+                // Generate unique ID
+                const classId = Date.now().toString();
+                
+                // Save to Firebase
+                const database = window.firebaseDatabase;
+                await database.ref('classes/' + classId).set(classData);
+                
+                showNotification('Kelas berhasil ditambahkan!', 'success');
+                document.getElementById('addClassForm').reset();
+                
+                // Reload data
+                await loadClasses();
+                await loadStats();
+                
+            } catch (error) {
+                showNotification('Error: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Logout function
+        window.handleLogout = async function() {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                try {
+                    await window.firebaseAuth.signOut();
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    showNotification('Error logout: ' + error.message, 'error');
+                }
+            }
+        };
+
+        // Placeholder functions for actions
+        function viewClassDetails(classId) {
+            alert('Detail kelas ID: ' + classId);
+        }
+
+        function editClass(classId) {
+            alert('Edit kelas ID: ' + classId + '\n(Fitur akan segera tersedia)');
+        }
+
+        async function deleteClass(classId) {
+            if (confirm('Hapus kelas ini?')) {
+                try {
+                    const database = window.firebaseDatabase;
+                    await database.ref('classes/' + classId).remove();
+                    showNotification('Kelas berhasil dihapus!', 'success');
+                    await loadClasses();
+                    await loadStats();
+                } catch (error) {
+                    showNotification('Error: ' + error.message, 'error');
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Syntax - Firebase v8</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .success { background-color: #4CAF50; }
+        .error { background-color: #F44336; }
+        .info { background-color: #2196F3; }
+    </style>
+</head>
+<body>
+    <h1>🔥 Test Syntax Firebase v8</h1>
+    
+    <div id="status"></div>
+    
+    <div id="results"></div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config and Functions -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML += `<div class="status info">${message}</div>`;
+        }
+
+        // Test if all files load without syntax errors
+        setTimeout(() => {
+            try {
+                // Check Firebase initialization
+                if (window.firebase && window.firebaseAuth && window.firebaseDatabase) {
+                    showStatus('✅ Firebase SDK loaded successfully!', 'success');
+                    addResult('Firebase v8 SDK loaded without errors');
+                } else {
+                    showStatus('❌ Firebase SDK not loaded', 'error');
+                    addResult('Firebase SDK failed to load');
+                }
+
+                // Check if all functions are available
+                const requiredFunctions = [
+                    'registerUser', 'loginUser', 'logoutUser', 'checkAuthState', 'getCurrentUserData',
+                    'createGymClass', 'getAllClasses', 'getClassById', 'updateGymClass', 'deleteGymClass',
+                    'createBooking', 'getUserBookings', 'cancelBooking', 'getAllBookings'
+                ];
+                
+                let functionsLoaded = 0;
+                requiredFunctions.forEach(func => {
+                    if (typeof window[func] === 'function') {
+                        addResult(`✅ ${func} function loaded`);
+                        functionsLoaded++;
+                    } else {
+                        addResult(`❌ ${func} function missing`);
+                    }
+                });
+                
+                if (functionsLoaded === requiredFunctions.length) {
+                    addResult(`🎉 All ${functionsLoaded} functions loaded successfully!`);
+                    showStatus(`✅ No syntax errors! All ${functionsLoaded} functions available`, 'success');
+                } else {
+                    addResult(`⚠️ Only ${functionsLoaded}/${requiredFunctions.length} functions loaded`);
+                    showStatus(`⚠️ Some functions missing: ${functionsLoaded}/${requiredFunctions.length}`, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('❌ Syntax error detected: ' + error.message, 'error');
+                addResult('Error: ' + error.message);
+            }
+        }, 2000);
+    </script>
+</body>
+</html> 

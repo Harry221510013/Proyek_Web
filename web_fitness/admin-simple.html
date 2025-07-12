@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLife - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #f8a5c2;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logout-btn {
+            background: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: #f093b0;
+            transform: translateY(-2px);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .admin-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #f8a5c2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .add-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .add-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #f8a5c2;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.75rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .save-btn {
+            background: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .save-btn:hover {
+            background: #f093b0;
+            transform: translateY(-2px);
+        }
+        
+        .classes-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .class-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .class-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f8a5c2;
+        }
+        
+        .class-category {
+            background: rgba(248, 165, 194, 0.2);
+            color: #f8a5c2;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .class-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        
+        .class-info div {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .class-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn:hover {
+            background: #1976D2;
+        }
+        
+        .delete-btn {
+            background: #F44336;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #D32F2F;
+        }
+        
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #F44336;
+            color: #F44336;
+        }
+        
+        .status.info {
+            background: rgba(33, 150, 243, 0.2);
+            border: 1px solid #2196F3;
+            color: #2196F3;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: #f8a5c2;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f8a5c2;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .classes-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">FitLife Admin</div>
+        <div class="user-info">
+            <span id="adminName">Admin</span>
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistics -->
+        <div class="admin-section">
+            <h2 class="section-title">Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalClasses">0</div>
+                    <div class="stat-label">Total Kelas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalBookings">0</div>
+                    <div class="stat-label">Total Booking</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUsers">0</div>
+                    <div class="stat-label">Total User</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeClasses">0</div>
+                    <div class="stat-label">Kelas Aktif</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Class Form -->
+        <div class="admin-section">
+            <h2 class="section-title">
+                Tambah Kelas Baru
+                <button class="add-btn" onclick="resetForm()">Reset Form</button>
+            </h2>
+            
+            <div id="statusMessage"></div>
+            
+            <form id="addClassForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="className">Nama Kelas</label>
+                        <input type="text" id="className" name="name" required placeholder="Contoh: Yoga Morning">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classCategory">Kategori</label>
+                        <select id="classCategory" name="category" required>
+                            <option value="">Pilih Kategori</option>
+                            <option value="cardio">Cardio</option>
+                            <option value="strength">Strength Training</option>
+                            <option value="yoga">Yoga</option>
+                            <option value="pilates">Pilates</option>
+                            <option value="zumba">Zumba</option>
+                            <option value="aerobic">Aerobic</option>
+                            <option value="boxing">Boxing</option>
+                            <option value="dance">Dance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classDate">Tanggal</label>
+                        <input type="date" id="classDate" name="date" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classTime">Waktu</label>
+                        <input type="time" id="classTime" name="time" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classDuration">Durasi (menit)</label>
+                        <input type="number" id="classDuration" name="duration" min="30" max="180" value="60" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classTrainer">Trainer</label>
+                        <input type="text" id="classTrainer" name="trainer" required placeholder="Nama trainer">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classMaxParticipants">Maksimal Peserta</label>
+                        <input type="number" id="classMaxParticipants" name="maxParticipants" min="1" max="50" value="20" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="classPrice">Harga (Rp)</label>
+                        <input type="number" id="classPrice" name="price" min="0" value="50000" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="classDescription">Deskripsi</label>
+                    <textarea id="classDescription" name="description" rows="3" placeholder="Deskripsi kelas..."></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="save-btn">Tambah Kelas</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Classes List -->
+        <div class="admin-section">
+            <h2 class="section-title">
+                Daftar Kelas
+                <button class="add-btn" onclick="loadClasses()">Refresh</button>
+            </h2>
+            
+            <div class="loading" id="classesLoading">Memuat kelas...</div>
+            <div class="classes-list" id="classesList"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK v8 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Load Firebase Config -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <script>
+        let currentUser = null;
+        let isAdmin = false;
+
+        // Wait for Firebase to initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                initializeAdmin();
+            }, 2000);
+        });
+
+        async function initializeAdmin() {
+            try {
+                // Check authentication
+                const auth = window.firebaseAuth;
+                if (!auth) {
+                    showStatus('Firebase tidak terhubung', 'error');
+                    return;
+                }
+
+                // Check if user is logged in
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        
+                        // Check if user is admin
+                        const userData = await getCurrentUserData();
+                        if (userData && userData.role === 'admin') {
+                            isAdmin = true;
+                            document.getElementById('adminName').textContent = userData.fullName || user.email;
+                            showStatus('Selamat datang, Admin!', 'success');
+                            loadDashboardData();
+                        } else {
+                            showStatus('Akses ditolak. Anda bukan admin.', 'error');
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 2000);
+                        }
+                    } else {
+                        showStatus('Anda belum login', 'error');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 2000);
+                    }
+                });
+
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                // Load statistics
+                await loadStats();
+                
+                // Load classes
+                await loadClasses();
+                
+            } catch (error) {
+                showStatus('Error loading dashboard: ' + error.message, 'error');
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const database = window.firebaseDatabase;
+                
+                // Count classes
+                const classesSnapshot = await database.ref('classes').once('value');
+                const classesCount = classesSnapshot.exists() ? Object.keys(classesSnapshot.val()).length : 0;
+                document.getElementById('totalClasses').textContent = classesCount;
+                
+                // Count active classes (future dates)
+                let activeCount = 0;
+                if (classesSnapshot.exists()) {
+                    const classes = classesSnapshot.val();
+                    const today = new Date().toISOString().split('T')[0];
+                    activeCount = Object.values(classes).filter(cls => cls.date >= today).length;
+                }
+                document.getElementById('activeClasses').textContent = activeCount;
+                
+                // Count users
+                const usersSnapshot = await database.ref('users').once('value');
+                const usersCount = usersSnapshot.exists() ? Object.keys(usersSnapshot.val()).length : 0;
+                document.getElementById('totalUsers').textContent = usersCount;
+                
+                // Count bookings
+                const bookingsSnapshot = await database.ref('bookings').once('value');
+                let bookingsCount = 0;
+                if (bookingsSnapshot.exists()) {
+                    const bookings = bookingsSnapshot.val();
+                    Object.values(bookings).forEach(userBookings => {
+                        bookingsCount += Object.keys(userBookings).length;
+                    });
+                }
+                document.getElementById('totalBookings').textContent = bookingsCount;
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadClasses() {
+            const loadingDiv = document.getElementById('classesLoading');
+            const classesDiv = document.getElementById('classesList');
+            
+            loadingDiv.style.display = 'block';
+            classesDiv.innerHTML = '';
+            
+            try {
+                const classes = await getAllClasses();
+                
+                if (classes.length === 0) {
+                    classesDiv.innerHTML = '<div class="status info">Belum ada kelas yang dibuat.</div>';
+                } else {
+                    classes.forEach(cls => {
+                        const classCard = createClassCard(cls);
+                        classesDiv.appendChild(classCard);
+                    });
+                }
+                
+            } catch (error) {
+                classesDiv.innerHTML = `<div class="status error">Error loading classes: ${error.message}</div>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function createClassCard(cls) {
+            const card = document.createElement('div');
+            card.className = 'class-card';
+            
+            const participantsCount = cls.participants ? Object.keys(cls.participants).length : 0;
+            const isFullyBooked = participantsCount >= cls.maxParticipants;
+            
+            card.innerHTML = `
+                <div class="class-header">
+                    <div class="class-name">${cls.name}</div>
+                    <div class="class-category">${cls.category}</div>
+                </div>
+                <div class="class-info">
+                    <div>📅 ${cls.date}</div>
+                    <div>⏰ ${cls.time}</div>
+                    <div>👨‍🏫 ${cls.trainer}</div>
+                    <div>⏱️ ${cls.duration || 60} menit</div>
+                    <div>👥 ${participantsCount}/${cls.maxParticipants}</div>
+                    <div>💰 Rp ${(cls.price || 50000).toLocaleString()}</div>
+                </div>
+                <div class="class-description" style="margin-bottom: 1rem; font-size: 0.9rem; opacity: 0.8;">
+                    ${cls.description || 'Tidak ada deskripsi'}
+                </div>
+                <div class="class-actions">
+                    <button class="edit-btn" onclick="editClass('${cls.id}')">Edit</button>
+                    <button class="delete-btn" onclick="deleteClass('${cls.id}')">Hapus</button>
+                    ${isFullyBooked ? '<span style="color: #F44336; font-size: 0.8rem;">PENUH</span>' : ''}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Handle form submission
+        document.getElementById('addClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isAdmin) {
+                showStatus('Akses ditolak', 'error');
+                return;
+            }
+            
+            const formData = new FormData(e.target);
+            const classData = {
+                name: formData.get('name'),
+                category: formData.get('category'),
+                date: formData.get('date'),
+                time: formData.get('time'),
+                duration: parseInt(formData.get('duration')),
+                trainer: formData.get('trainer'),
+                maxParticipants: parseInt(formData.get('maxParticipants')),
+                price: parseInt(formData.get('price')),
+                description: formData.get('description'),
+                createdBy: currentUser.uid,
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                showStatus('Menambahkan kelas...', 'info');
+                
+                const result = await createClass(classData);
+                
+                if (result.success) {
+                    showStatus('Kelas berhasil ditambahkan!', 'success');
+                    resetForm();
+                    loadClasses();
+                    loadStats();
+                } else {
+                    showStatus('Error: ' + result.error, 'error');
+                }
+                
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('addClassForm').reset();
+            
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('classDate').value = tomorrow.toISOString().split('T')[0];
+            
+            showStatus('Form direset', 'info');
+        }
+
+        async function editClass(classId) {
+            // For now, just show alert - can be expanded later
+            alert('Fitur edit akan segera tersedia. Class ID: ' + classId);
+        }
+
+        async function deleteClass(classId) {
+            if (!isAdmin) {
+                showStatus('Akses ditolak', 'error');
+                return;
+            }
+            
+            if (confirm('Apakah Anda yakin ingin menghapus kelas ini?')) {
+                try {
+                    showStatus('Menghapus kelas...', 'info');
+                    
+                    const result = await window.deleteClass(classId);
+                    
+                    if (result.success) {
+                        showStatus('Kelas berhasil dihapus!', 'success');
+                        loadClasses();
+                        loadStats();
+                    } else {
+                        showStatus('Error: ' + result.error, 'error');
+                    }
+                    
+                } catch (error) {
+                    showStatus('Error: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await logoutUser();
+                window.location.href = 'login.html';
+            } catch (error) {
+                showStatus('Error logout: ' + error.message, 'error');
+            }
+        }
+
+        // Set default date when page loads
+        setTimeout(() => {
+            resetForm();
+        }, 3000);
+    </script>
+</body>
+</html> 

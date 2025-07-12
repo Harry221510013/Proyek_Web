@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLife - Admin Panel</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">FitLife Admin</div>
+        <nav class="nav-menu">
+            <a href="#classes" class="nav-link">Kelola Kelas</a>
+            <a href="#bookings" class="nav-link">Kelola Booking</a>
+            <a href="#users" class="nav-link">Kelola User</a>
+            <a href="admin-panel.html" class="nav-link admin-panel-btn">Admin Panel</a>
+            <div class="user-menu">
+                <span class="user-name" id="adminName">Admin</span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="admin-main">
+        <!-- Dashboard Stats -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Kelas</h3>
+                    <div class="stat-number" id="totalClasses">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Booking</h3>
+                    <div class="stat-number" id="totalBookings">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Total User</h3>
+                    <div class="stat-number" id="totalUsers">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Booking Hari Ini</h3>
+                    <div class="stat-number" id="todayBookings">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Classes Management -->
+        <section id="classes" class="admin-section">
+            <div class="section-header">
+                <h2>Kelola Kelas</h2>
+                <button class="add-btn" onclick="showAddClassModal()">Tambah Kelas</button>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nama Kelas</th>
+                            <th>Kategori</th>
+                            <th>Tanggal</th>
+                            <th>Waktu</th>
+                            <th>Trainer</th>
+                            <th>Peserta</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classesTableBody">
+                        <!-- Classes will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Bookings Management -->
+        <section id="bookings" class="admin-section">
+            <div class="section-header">
+                <h2>Kelola Booking</h2>
+                <div class="filter-controls">
+                    <select id="bookingStatusFilter" class="filter-select">
+                        <option value="">Semua Status</option>
+                        <option value="confirmed">Terkonfirmasi</option>
+                        <option value="cancelled">Dibatalkan</option>
+                        <option value="completed">Selesai</option>
+                    </select>
+                    <input type="date" id="bookingDateFilter" class="filter-input">
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Kelas</th>
+                            <th>Tanggal Kelas</th>
+                            <th>Waktu</th>
+                            <th>Tanggal Booking</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingsTableBody">
+                        <!-- Bookings will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Users Management -->
+        <section id="users" class="admin-section">
+            <div class="section-header">
+                <h2>Kelola User</h2>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Total Booking</th>
+                            <th>Bergabung</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <!-- Users will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add/Edit Class Modal -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('classModal')">&times;</span>
+            <h2 id="classModalTitle">Tambah Kelas</h2>
+            <form id="classForm" class="modal-form">
+                <div class="form-group">
+                    <label for="className">Nama Kelas</label>
+                    <input type="text" id="className" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="classCategory">Kategori</label>
+                    <select id="classCategory" name="category" required>
+                        <option value="">Pilih Kategori</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="strength">Strength Training</option>
+                        <option value="yoga">Yoga</option>
+                        <option value="pilates">Pilates</option>
+                        <option value="zumba">Zumba</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="classDate">Tanggal</label>
+                    <input type="date" id="classDate" name="date" required>
+                </div>
+                <div class="form-group">
+                    <label for="classTime">Waktu</label>
+                    <input type="time" id="classTime" name="time" required>
+                </div>
+                <div class="form-group">
+                    <label for="classDuration">Durasi (menit)</label>
+                    <input type="number" id="classDuration" name="duration" min="30" max="180" value="60">
+                </div>
+                <div class="form-group">
+                    <label for="classTrainer">Trainer</label>
+                    <input type="text" id="classTrainer" name="trainer" required>
+                </div>
+                <div class="form-group">
+                    <label for="classMaxParticipants">Maksimal Peserta</label>
+                    <input type="number" id="classMaxParticipants" name="maxParticipants" min="1" max="50" value="20">
+                </div>
+                <div class="form-group">
+                    <label for="classDescription">Deskripsi</label>
+                    <textarea id="classDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal('classModal')">Batal</button>
+                    <button type="submit" class="save-btn">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script type="module" src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script type="module" src="admin.js"></script>
+</body>
+</html> 

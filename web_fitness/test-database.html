@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase Database Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #121212;
+            color: white;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .success { background-color: #4CAF50; }
+        .error { background-color: #F44336; }
+        .info { background-color: #2196F3; }
+        .warning { background-color: #FF9800; }
+        button {
+            background-color: #f8a5c2;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .section {
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        pre {
+            background-color: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Test Firebase Database Connection</h1>
+    
+    <div id="status"></div>
+    
+    <div class="section">
+        <h3>Database Configuration</h3>
+        <div id="config-info"></div>
+    </div>
+    
+    <div class="section">
+        <h3>Connection Tests</h3>
+        <button onclick="testDatabaseConnection()">Test Database Connection</button>
+        <button onclick="testDatabaseWrite()">Test Database Write</button>
+        <button onclick="testDatabaseRead()">Test Database Read</button>
+        <button onclick="clearTestData()">Clear Test Data</button>
+    </div>
+    
+    <div class="section">
+        <h3>Results</h3>
+        <div id="results"></div>
+    </div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMD2jUich1QWj14h-nkaIR_F7dlQBOqCc",
+            authDomain: "booking-gym-mo.firebaseapp.com",
+            databaseURL: "https://booking-gym-mo-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "booking-gym-mo",
+            storageBucket: "booking-gym-mo.firebasestorage.app",
+            messagingSenderId: "977848860115",
+            appId: "1:977848860115:web:b6ee470443876ff904326"
+        };
+
+        let app, auth, database;
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const time = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<div class="status ${type}">${time}: ${message}</div>`;
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function showConfig() {
+            const configDiv = document.getElementById('config-info');
+            configDiv.innerHTML = `
+                <pre>Project ID: ${firebaseConfig.projectId}
+Database URL: ${firebaseConfig.databaseURL}
+Auth Domain: ${firebaseConfig.authDomain}
+API Key: ${firebaseConfig.apiKey.substring(0, 20)}...</pre>
+            `;
+        }
+
+        // Initialize Firebase
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            database = firebase.database();
+            
+            showStatus('✅ Firebase initialized successfully!', 'success');
+            showConfig();
+            addResult('Firebase SDK loaded and configured');
+            
+        } catch (error) {
+            showStatus('❌ Firebase initialization failed: ' + error.message, 'error');
+            addResult('Firebase initialization error: ' + error.message, 'error');
+        }
+
+        async function testDatabaseConnection() {
+            try {
+                showStatus('🔄 Testing database connection...', 'info');
+                addResult('Testing database connection...');
+                
+                // Try to get database reference
+                const testRef = database.ref('.info/connected');
+                
+                testRef.on('value', (snapshot) => {
+                    if (snapshot.val() === true) {
+                        showStatus('✅ Database connection successful!', 'success');
+                        addResult('Database connection established', 'success');
+                    } else {
+                        showStatus('❌ Database not connected', 'error');
+                        addResult('Database connection failed', 'error');
+                    }
+                });
+                
+            } catch (error) {
+                showStatus('❌ Database connection error: ' + error.message, 'error');
+                addResult('Database connection error: ' + error.message, 'error');
+            }
+        }
+
+        async function testDatabaseWrite() {
+            try {
+                showStatus('🔄 Testing database write...', 'info');
+                addResult('Testing database write...');
+                
+                const testData = {
+                    message: 'Hello Firebase!',
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    testId: Math.random().toString(36).substr(2, 9)
+                };
+                
+                await database.ref('test/connection').set(testData);
+                
+                showStatus('✅ Database write successful!', 'success');
+                addResult('Successfully wrote test data to database', 'success');
+                
+            } catch (error) {
+                showStatus('❌ Database write error: ' + error.message, 'error');
+                addResult('Database write error: ' + error.message, 'error');
+                
+                if (error.code === 'PERMISSION_DENIED') {
+                    addResult('⚠️ Permission denied - check database rules', 'warning');
+                }
+            }
+        }
+
+        async function testDatabaseRead() {
+            try {
+                showStatus('🔄 Testing database read...', 'info');
+                addResult('Testing database read...');
+                
+                const snapshot = await database.ref('test/connection').once('value');
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    showStatus('✅ Database read successful!', 'success');
+                    addResult('Successfully read test data: ' + JSON.stringify(data), 'success');
+                } else {
+                    showStatus('⚠️ No test data found', 'warning');
+                    addResult('No test data found - try writing first', 'warning');
+                }
+                
+            } catch (error) {
+                showStatus('❌ Database read error: ' + error.message, 'error');
+                addResult('Database read error: ' + error.message, 'error');
+                
+                if (error.code === 'PERMISSION_DENIED') {
+                    addResult('⚠️ Permission denied - check database rules', 'warning');
+                }
+            }
+        }
+
+        async function clearTestData() {
+            try {
+                showStatus('🔄 Clearing test data...', 'info');
+                addResult('Clearing test data...');
+                
+                await database.ref('test').remove();
+                
+                showStatus('✅ Test data cleared!', 'success');
+                addResult('Test data cleared successfully', 'success');
+                
+            } catch (error) {
+                showStatus('❌ Clear data error: ' + error.message, 'error');
+                addResult('Clear data error: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-test connection when page loads
+        setTimeout(() => {
+            testDatabaseConnection();
+        }, 2000);
+    </script>
+</body>
+</html> 

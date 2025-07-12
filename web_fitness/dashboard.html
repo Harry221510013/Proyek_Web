@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitLife - Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="location.href='index.html'">FitLife</div>
+        <nav class="nav-menu">
+            <a href="#classes" class="nav-link">Kelas</a>
+            <a href="#bookings" class="nav-link">Booking Saya</a>
+            <a href="#profile" class="nav-link">Profil</a>
+            <div class="user-menu">
+                <span class="user-name" id="userName">Loading...</span>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1>Selamat Datang, <span id="userDisplayName">User</span>!</h1>
+                <p>Kelola jadwal latihan dan booking kelas gym Anda</p>
+            </div>
+        </section>
+
+        <!-- Classes Section -->
+        <section id="classes" class="dashboard-section">
+            <div class="section-header">
+                <h2>Kelas Tersedia</h2>
+                <div class="filter-controls">
+                    <input type="date" id="dateFilter" class="filter-input">
+                    <select id="categoryFilter" class="filter-select">
+                        <option value="">Semua Kategori</option>
+                        <option value="cardio">Cardio</option>
+                        <option value="strength">Strength Training</option>
+                        <option value="yoga">Yoga</option>
+                        <option value="pilates">Pilates</option>
+                        <option value="zumba">Zumba</option>
+                    </select>
+                </div>
+            </div>
+            <div class="classes-grid" id="classesGrid">
+                <!-- Classes will be loaded here -->
+            </div>
+        </section>
+
+        <!-- My Bookings Section -->
+        <section id="bookings" class="dashboard-section">
+            <div class="section-header">
+                <h2>Booking Saya</h2>
+                <div class="booking-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="totalBookings">0</span>
+                        <span class="stat-label">Total Booking</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="upcomingBookings">0</span>
+                        <span class="stat-label">Mendatang</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bookings-list" id="bookingsList">
+                <!-- Bookings will be loaded here -->
+            </div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profile" class="dashboard-section">
+            <div class="section-header">
+                <h2>Profil Saya</h2>
+            </div>
+            <div class="profile-content">
+                <form class="profile-form" id="profileForm">
+                    <div class="form-group">
+                        <label for="fullName">Nama Lengkap</label>
+                        <input type="text" id="fullName" name="fullName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">No. Telepon</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Umur</label>
+                        <input type="number" id="age" name="age" min="16" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="fitnessGoal">Tujuan Fitness</label>
+                        <select id="fitnessGoal" name="fitnessGoal">
+                            <option value="">Pilih Tujuan</option>
+                            <option value="weight-loss">Menurunkan Berat Badan</option>
+                            <option value="muscle-gain">Menambah Massa Otot</option>
+                            <option value="endurance">Meningkatkan Daya Tahan</option>
+                            <option value="flexibility">Meningkatkan Fleksibilitas</option>
+                            <option value="general-fitness">Kebugaran Umum</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="update-btn">Update Profil</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Class Detail Modal -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="classDetails">
+                <!-- Class details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Firebase SDK v8 (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <!-- Firebase Config and Functions -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="gym-classes.js"></script>
+    <script src="bookings.js"></script>
+    
+    <!-- Custom Scripts -->
+    <script src="dashboard.js"></script>
+</body>
+</html> 
